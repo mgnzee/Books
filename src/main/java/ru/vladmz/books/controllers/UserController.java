@@ -1,5 +1,6 @@
 package ru.vladmz.books.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.entities.User;
@@ -19,7 +20,7 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user){
+    public User createUser(@RequestBody @Valid User user){
         return service.createUser(user);
     }
 
@@ -34,7 +35,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public User updateUser(@PathVariable Integer id, @RequestBody User user){
+    public User updateUser(@PathVariable Integer id, @RequestBody @Valid User user){
         return service.updateUser(user, id);
     }
 

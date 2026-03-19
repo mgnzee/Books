@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -28,6 +31,9 @@ public class User {
     @Column(name = "profile_pic_url")
     private String profilePicture;
 
+    @OneToMany(mappedBy = "uploadedBy")
+    private List<Book> books = new ArrayList<>();
+
     public User(){}
 
     public User(Integer id, String name, String email, String profilePicture) {
@@ -41,7 +47,7 @@ public class User {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -67,5 +73,10 @@ public class User {
 
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
+    }
+
+    public void addBook(Book book){
+        this.books.add(book);
+        book.setUploadedBy(this);
     }
 }
