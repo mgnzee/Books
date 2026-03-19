@@ -3,6 +3,7 @@ package ru.vladmz.books.controllers;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.vladmz.books.DTOs.CollectionResponse;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.services.UserService;
 
@@ -11,6 +12,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+
+    //TODO: FINISH METHODS
 
     private final UserService service;
 
@@ -32,6 +35,11 @@ public class UserController {
     @GetMapping("/{id}")
     public User selectById(@PathVariable Integer id){
         return service.findById(id);
+    }
+
+    @GetMapping("/{id}/collections")
+    public List<CollectionResponse> selectCollections(){
+        return null;
     }
 
     @PatchMapping("/{id}")

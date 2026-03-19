@@ -34,6 +34,9 @@ public class User {
     @OneToMany(mappedBy = "uploadedBy")
     private List<Book> books = new ArrayList<>();
 
+    @OneToMany(mappedBy = "author")
+    private List<Collection> collections = new ArrayList<>();
+
     public User(){}
 
     public User(Integer id, String name, String email, String profilePicture) {
@@ -78,5 +81,10 @@ public class User {
     public void addBook(Book book){
         this.books.add(book);
         book.setUploadedBy(this);
+    }
+
+    public void addCollection(Collection collection){
+        this.collections.add(collection);
+        collection.setAuthor(this);
     }
 }

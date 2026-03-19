@@ -7,6 +7,8 @@ import org.hibernate.validator.constraints.URL;
 import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "books")
@@ -29,6 +31,7 @@ public class Book {
     @NotBlank
     private String language;
 
+    //TODO: ADD RATINGS
     //private Double rating;
 
     @URL
@@ -52,6 +55,9 @@ public class Book {
     @ManyToOne
     @JoinColumn(name = "uploaded_by", nullable = false)
     private User uploadedBy;
+
+    @OneToMany(mappedBy = "books")
+    private List<Collection> collections = new ArrayList<>();
 
     public Book(){}
 
