@@ -13,8 +13,6 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-    //TODO: FINISH METHODS
-
     private final UserService service;
 
     @Autowired
@@ -38,8 +36,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}/collections")
-    public List<CollectionResponse> selectCollections(){
-        return null;
+    public List<CollectionResponse> selectCollections(@PathVariable Integer id){
+        return service.findCollectionsOfUser(id);
     }
 
     @PatchMapping("/{id}")

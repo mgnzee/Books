@@ -2,7 +2,9 @@ package ru.vladmz.books.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.vladmz.books.DTOs.CollectionResponse;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.repositories.CollectionRepository;
 import ru.vladmz.books.repositories.UserRepository;
 
 import java.util.List;
@@ -11,10 +13,12 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository repository;
+    private final CollectionRepository collectionRepository;
 
     @Autowired
-    public UserService(UserRepository repository) {
+    public UserService(UserRepository repository, CollectionRepository collectionRepository) {
         this.repository = repository;
+        this.collectionRepository = collectionRepository;
     }
 
     public List<User> findAll(){
@@ -23,6 +27,10 @@ public class UserService {
 
     public User findById(Integer id){
         return repository.findById(id).orElseThrow(() -> new RuntimeException("User with id: " + id + " not found."));
+    }
+
+    public List<CollectionResponse> findCollectionsOfUser(Integer id){
+        return collectionRepository.findByAuthorId(id).stream().map(CollectionResponse::new).toList();
     }
 
     public User createUser(User user){
