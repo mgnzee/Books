@@ -1,10 +1,12 @@
 package ru.vladmz.books.services;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.vladmz.books.DTOs.CollectionResponse;
+import ru.vladmz.books.DTOs.BookshelfResponse;
+import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
-import ru.vladmz.books.repositories.CollectionRepository;
+import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.UserRepository;
 
 import java.util.List;
@@ -13,12 +15,12 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository repository;
-    private final CollectionRepository collectionRepository;
+    private final BookshelfRepository bookshelfRepository;
 
     @Autowired
-    public UserService(UserRepository repository, CollectionRepository collectionRepository) {
+    public UserService(UserRepository repository, BookshelfRepository bookshelfRepository) {
         this.repository = repository;
-        this.collectionRepository = collectionRepository;
+        this.bookshelfRepository = bookshelfRepository;
     }
 
     public List<User> findAll(){
@@ -29,12 +31,19 @@ public class UserService {
         return repository.findById(id).orElseThrow(() -> new RuntimeException("User with id: " + id + " not found."));
     }
 
-    public List<CollectionResponse> findCollectionsOfUser(Integer id){
-        return collectionRepository.findByAuthorId(id).stream().map(CollectionResponse::new).toList();
+    public List<BookshelfResponse> findBookshelvesOfUser(Integer id){
+        return bookshelfRepository.findByAuthorId(id).stream().map(BookshelfResponse::new).toList();
     }
 
+    @Transactional
     public User createUser(User user){
-        return repository.save(user);
+        User newUser = repository.save(user);
+        Bookshelf newBookshelf = new Bookshelf();
+        newBookshelf.setTitle("My Library");
+        newBookshelf.setDescription("This is default bookshelf created automatically");
+        newBookshelf.setAuthor(newUser);
+        bookshelfRepository.save(newBookshelf);
+        return newUser;
     }
 
     public User updateUser(User user, Integer id){

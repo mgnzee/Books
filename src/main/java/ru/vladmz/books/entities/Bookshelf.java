@@ -1,7 +1,7 @@
 package ru.vladmz.books.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
@@ -9,14 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "collections")
-public class Collection {
+@Table(name = "bookshelves")
+public class Bookshelf {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Max(100)
+    @Size(max = 100)
     private String title;
 
     private String description;
@@ -36,15 +36,15 @@ public class Collection {
 
     @ManyToMany
     @JoinTable(
-            name = "collections_to_books",
-            joinColumns = @JoinColumn(name = "collection_id"),
+            name = "bookshelves_to_books",
+            joinColumns = @JoinColumn(name = "bookshelf_id"),
             inverseJoinColumns = @JoinColumn(name = "book_id")
     )
     private List<Book> books = new ArrayList<>();
 
-    public Collection() {}
+    public Bookshelf() {}
 
-    public Collection(String title, String description, String cover) {
+    public Bookshelf(String title, String description, String cover) {
         this.title = title;
         this.description = description;
         this.cover = cover;

@@ -57,7 +57,7 @@ public class Book {
     private User uploadedBy;
 
     @OneToMany(mappedBy = "books")
-    private List<Collection> collections = new ArrayList<>();
+    private List<Bookshelf> bookshelves = new ArrayList<>();
 
     public Book(){}
 

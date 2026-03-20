@@ -1,20 +1,20 @@
 package ru.vladmz.books.DTOs;
 
-import ru.vladmz.books.entities.Collection;
+import ru.vladmz.books.entities.Bookshelf;
 
-public class CollectionResponse {
+public class BookshelfResponse {
     private Integer id;
     private String title;
     private String description;
     private String cover;
     private Integer authorId;
 
-    public CollectionResponse(Collection collection){
-        this.id = collection.getId();
-        this.title = collection.getTitle();
-        this.description = collection.getDescription();
-        this.cover = collection.getCover();
-        this.authorId = collection.getAuthor().getId();
+    public BookshelfResponse(Bookshelf bookshelf){
+        this.id = bookshelf.getId();
+        this.title = bookshelf.getTitle();
+        this.description = bookshelf.getDescription();
+        this.cover = bookshelf.getCover();
+        this.authorId = bookshelf.getAuthor().getId();
     }
 
     public Integer getId() {

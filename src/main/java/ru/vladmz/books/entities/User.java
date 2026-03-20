@@ -35,7 +35,7 @@ public class User {
     private List<Book> books = new ArrayList<>();
 
     @OneToMany(mappedBy = "author")
-    private List<Collection> collections = new ArrayList<>();
+    private List<Bookshelf> bookshelves = new ArrayList<>();
 
     public User(){}
 
@@ -83,8 +83,8 @@ public class User {
         book.setUploadedBy(this);
     }
 
-    public void addCollection(Collection collection){
-        this.collections.add(collection);
-        collection.setAuthor(this);
+    public void addBookshelf(Bookshelf bookshelf){
+        this.bookshelves.add(bookshelf);
+        bookshelf.setAuthor(this);
     }
 }
