@@ -69,6 +69,8 @@ class UserServiceTest {
         verify(repository, times(1)).findById(99);
     }
 
+
+    //TODO: REWRITE (ADD BOOKSHELF TO NEW USER)
     @Test
     void createUser() {
         User newUser = new User();

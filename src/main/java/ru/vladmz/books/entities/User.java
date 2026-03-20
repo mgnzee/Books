@@ -37,6 +37,9 @@ public class User {
     @OneToMany(mappedBy = "author")
     private List<Bookshelf> bookshelves = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<Comment> comments = new ArrayList<>();
+
     public User(){}
 
     public User(Integer id, String name, String email, String profilePicture) {
