@@ -43,7 +43,7 @@ public class Comment {
     private String text;
 
     private Integer upvotes = 0;
-    private Integer downVotes = 0;
+    private Integer downvotes = 0;
 
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
@@ -100,8 +100,8 @@ public class Comment {
         return upvotes;
     }
 
-    public Integer getDownVotes() {
-        return downVotes;
+    public Integer getDownvotes() {
+        return downvotes;
     }
 
     public Boolean isDeleted() {
@@ -145,11 +145,11 @@ public class Comment {
     }
 
     public void incrementDownvotes() {
-        this.downVotes += 1;
+        this.downvotes += 1;
     }
 
     public void decrementDownvotes() {
-        this.downVotes -= 1;
+        this.downvotes -= 1;
     }
 
     public void delete() {
@@ -160,4 +160,7 @@ public class Comment {
         this.isDeleted = false;
     }
 
+    public List<Comment> getReplies(){
+        return replies;
+    }
 }
