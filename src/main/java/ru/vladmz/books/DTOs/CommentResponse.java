@@ -16,9 +16,9 @@ public class CommentResponse {
     private Boolean isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Integer repliesAmount;
+    private Long repliesAmount;
 
-    public CommentResponse(Comment comment, Integer replyAmount){
+    public CommentResponse(Comment comment, Long replyAmount){
         this.id = comment.getId();
         this.text = comment.getText();
         this.upvotes = comment.getUpvotes();
@@ -81,7 +81,7 @@ public class CommentResponse {
         return updatedAt;
     }
 
-    public Integer getRepliesAmount() {
+    public Long getRepliesAmount() {
         return repliesAmount;
     }
 }

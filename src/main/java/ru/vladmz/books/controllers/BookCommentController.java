@@ -38,7 +38,7 @@ public class BookCommentController {
 
     @GetMapping("/{commentId}/replies")
     public List<CommentResponse> selectReplies(@PathVariable Integer bookId, @PathVariable Integer commentId){
-        return service.getAllReplies(bookId, TargetType.BOOK, commentId);
+        return service.getReplies(bookId, TargetType.BOOK, commentId);
     }
 
     //TODO: REPLACE WITH AUTH
