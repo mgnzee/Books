@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.repositories.UserRepository;
 
 import java.util.Arrays;
@@ -64,7 +65,7 @@ class UserServiceTest {
     void shouldThrowExceptionIfDoesntExist() {
         when(repository.findById(99)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> service.findById(99));
+        assertThrows(UserNotFoundException.class, () -> service.findById(99));
 
         verify(repository, times(1)).findById(99);
     }

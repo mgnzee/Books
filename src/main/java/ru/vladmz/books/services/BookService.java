@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.BookResponse;
 import ru.vladmz.books.entities.Book;
+import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class BookService {
     }
 
     public BookResponse findById(Integer id){
-        return new BookResponse(repository.findById(id).orElseThrow(() -> new RuntimeException("Book with id: " + id + " not found")));
+        return new BookResponse(repository.findById(id).orElseThrow(() -> new BookNotFoundException(id)));
     }
 
     public BookResponse createBook(Book book){
@@ -31,7 +32,7 @@ public class BookService {
     }
 
     public BookResponse updateBook(Book book, Integer id){
-        Book currentBook = repository.findById(id).orElseThrow(() -> new RuntimeException("Book with id: " + id + " not found"));
+        Book currentBook = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
         if(book.getTitle() != null) currentBook.setTitle(book.getTitle());
         if(book.getAuthor() != null) currentBook.setAuthor(book.getAuthor());
         if(book.getDescription() != null) currentBook.setDescription(book.getDescription());
@@ -41,11 +42,12 @@ public class BookService {
     }
 
     public void deleteBook(Integer id){
+        repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
         repository.deleteById(id);
     }
 
     public void incrementDownloadCount(Integer id){
-        Book book = repository.findById(id).orElseThrow(() -> new RuntimeException("Book with id: " + id + " not found"));
+        Book book = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
         book.setDownloadCount(book.getDownloadCount()+1);
         repository.save(book);
     }

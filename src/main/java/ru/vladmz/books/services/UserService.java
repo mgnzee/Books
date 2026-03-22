@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.BookshelfResponse;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.UserRepository;
 
@@ -28,10 +29,11 @@ public class UserService {
     }
 
     public User findById(Integer id){
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("User with id: " + id + " not found."));
+        return repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 
     public List<BookshelfResponse> findBookshelvesOfUser(Integer id){
+        repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         return bookshelfRepository.findByAuthorId(id).stream().map(BookshelfResponse::new).toList();
     }
 
@@ -47,7 +49,7 @@ public class UserService {
     }
 
     public User updateUser(User user, Integer id){
-        User currentUser = repository.findById(id).orElseThrow(() -> new RuntimeException("User with id: " + id + " not found."));
+        User currentUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         if(user.getName() != null) currentUser.setName(user.getName());
         if(user.getEmail() != null) currentUser.setEmail(user.getEmail());
         if(user.getProfilePicture() != null) currentUser.setProfilePicture(user.getProfilePicture());
@@ -55,6 +57,7 @@ public class UserService {
     }
 
     public void deleteUser(Integer id){
+        repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         repository.deleteById(id);
     }
 }

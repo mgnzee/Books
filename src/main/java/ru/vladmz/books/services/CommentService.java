@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.etc.TargetType;
+import ru.vladmz.books.exceptions.BookNotFoundException;
+import ru.vladmz.books.exceptions.CommentNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.CommentRepository;
 
@@ -25,8 +27,8 @@ public class CommentService {
 
     //TODO: FIX N+1 PROBLEM HERE:
     public List<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType type){
-        bookRepository.findById(targetId)
-                .orElseThrow(() -> new RuntimeException("Book with id: " + targetId + " not found"));
+//        bookRepository.findById(targetId)
+//                .orElseThrow(() -> new BookNotFoundException(targetId));
 
         return repository.findCommentsWithRepliesAmount(type, targetId).stream()
                 .map(result -> {
@@ -47,7 +49,7 @@ public class CommentService {
 
     public CommentResponse findById(Integer commentId, TargetType targetType, Integer targetId){
         return repository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() ->
-                new RuntimeException("No comment found with id: " + commentId));
+                new CommentNotFoundException(commentId));
     }
 
 
