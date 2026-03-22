@@ -2,6 +2,8 @@ package ru.vladmz.books.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.BookshelfResponse;
 import ru.vladmz.books.entities.User;
@@ -21,8 +23,9 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody @Valid User user){
-        return service.createUser(user);
+    public ResponseEntity<User> createUser(@RequestBody @Valid User user){
+        User created = service.createUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping
@@ -41,12 +44,14 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public User updateUser(@PathVariable Integer id, @RequestBody User user){
-        return service.updateUser(user, id);
+    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User user){
+        User updated = service.updateUser(user, id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(updated);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Integer id){
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id){
         service.deleteUser(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

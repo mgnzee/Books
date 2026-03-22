@@ -2,6 +2,8 @@ package ru.vladmz.books.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.BookRequest;
 import ru.vladmz.books.DTOs.BookResponse;
@@ -33,7 +35,7 @@ public class BookController {
     }
 
     @PostMapping
-    public BookResponse createBook(@RequestBody @Valid BookRequest bookRequest){
+    public ResponseEntity<BookResponse> createBook(@RequestBody @Valid BookRequest bookRequest){
         User currentUser = getCurrentUser();
         Book book = new Book();
         book.setTitle(bookRequest.getTitle());
@@ -43,7 +45,8 @@ public class BookController {
         book.setLanguage(bookRequest.getLanguage());
         book.setDownloadCount(0);
         book.setUploadedBy(currentUser);
-        return service.createBook(book);
+        BookResponse created = service.createBook(book);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping
@@ -57,12 +60,14 @@ public class BookController {
     }
 
     @PatchMapping("/{id}")
-    public BookResponse updateBook(@PathVariable Integer id, @RequestBody Book book){
-        return service.updateBook(book, id);
+    public ResponseEntity<BookResponse> updateBook(@PathVariable Integer id, @RequestBody Book book){
+        BookResponse updated = service.updateBook(book, id);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBook(@PathVariable Integer id){
+    public ResponseEntity<Void> deleteBook(@PathVariable Integer id){
         service.deleteBook(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

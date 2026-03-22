@@ -2,6 +2,8 @@ package ru.vladmz.books.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.CommentRequest;
 import ru.vladmz.books.DTOs.CommentResponse;
@@ -47,25 +49,26 @@ public class BookCommentController {
     }
 
     @PostMapping
-    public CommentResponse createComment(@PathVariable Integer bookId, @RequestBody @Valid CommentRequest request){
+    public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookId, @RequestBody @Valid CommentRequest request){
         Comment comment = new Comment();
         User user = getCurrentUser();
         comment.setText(request.getText());
         comment.setTargetType(TargetType.BOOK);
         comment.setTargetId(bookId);
         comment.setUser(user);
-        return service.saveComment(comment);
+        CommentResponse created = service.saveComment(comment);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     //TODO: IMPLEMENT CRUD METHODS FOR COMMENTS
 
     @PatchMapping("/{commentId}")
-    public CommentResponse changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId, @RequestBody @Valid CommentRequest request){
+    public ResponseEntity<CommentResponse> changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId, @RequestBody @Valid CommentRequest request){
         return null;
     }
 
     @DeleteMapping("/{commentId}")
-    public void deleteComment(@PathVariable Integer bookId, @PathVariable Integer commentId){
-
+    public ResponseEntity<Void> deleteComment(@PathVariable Integer bookId, @PathVariable Integer commentId){
+        return null;
     }
 }
