@@ -16,13 +16,6 @@ public class UserResponse {
         this.profilePicture = profilePicture;
     }
 
-//    public UserResponse(User user){
-//        this.id = user.getId();
-//        this.name = user.getName();
-//        this.email = user.getEmail();
-//        this.profilePicture = user.getProfilePicture();
-//    }
-
     public Integer getId() {
         return id;
     }

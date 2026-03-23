@@ -1,6 +1,7 @@
 package ru.vladmz.books.services;
 
 import jakarta.transaction.Transactional;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse createUser(User user, String rawPassword){
+    public UserResponse createUser(@NonNull User user, String rawPassword){
         user.setPassword(passwordEncoder.encode(rawPassword));
         User newUser = repository.save(user);
         Bookshelf newBookshelf = new Bookshelf();
