@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.CommentRequest;
 import ru.vladmz.books.DTOs.CommentResponse;
+import ru.vladmz.books.DTOs.UserResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.TargetType;
@@ -45,7 +46,8 @@ public class BookCommentController {
 
     //TODO: REPLACE WITH AUTH
     private User getCurrentUser(){
-        return userService.findById(1);
+        UserResponse resp = userService.findById(1);
+        return new User(resp.getId(), resp.getName(), resp.getEmail(), resp.getProfilePicture());
     }
 
     @PostMapping

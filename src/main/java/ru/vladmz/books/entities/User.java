@@ -27,9 +27,17 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
+    @Column(name = "is_disabled")
+    private boolean isDisabled = false;
+
     @URL
     @Column(name = "profile_pic_url")
     private String profilePicture;
+
+    @Column(nullable = false)
+    private String password;
 
     @OneToMany(mappedBy = "uploadedBy")
     private List<Book> books = new ArrayList<>();
@@ -89,5 +97,25 @@ public class User {
     public void addBookshelf(Bookshelf bookshelf){
         this.bookshelves.add(bookshelf);
         bookshelf.setAuthor(this);
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public Boolean isDisabled() {
+        return isDisabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        isDisabled = disabled;
     }
 }

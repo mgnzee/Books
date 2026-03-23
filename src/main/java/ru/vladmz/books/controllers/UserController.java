@@ -5,10 +5,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.vladmz.books.DTOs.BookshelfResponse;
+import ru.vladmz.books.DTOs.UserCreateRequest;
+import ru.vladmz.books.DTOs.UserResponse;
+import ru.vladmz.books.DTOs.UserUpdateRequest;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.services.UserService;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -23,18 +28,39 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody @Valid User user){
-        User created = service.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request){
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setProfilePicture(request.getProfilePicture());
+        UserResponse created = service.createUser(user, request.getRawPassword());
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(created);
     }
 
     @GetMapping
-    public List<User> selectAll(){
-        return service.findAll();
+    public List<UserResponse> selectAll(){
+        return service.findAll(false, false);
+    }
+
+    @GetMapping("/deleted")
+    public List<UserResponse> selectDeleted(){
+        return service.findAll(true, false);
+    }
+
+    @GetMapping("/disabled")
+    public List<UserResponse> selectDisabled(){
+        return service.findAll(false, true);
     }
 
     @GetMapping("/{id}")
-    public User selectById(@PathVariable Integer id){
+    public UserResponse selectById(@PathVariable Integer id){
         return service.findById(id);
     }
 
@@ -44,14 +70,36 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User user){
-        User updated = service.updateUser(user, id);
-        return ResponseEntity.status(HttpStatus.CREATED).body(updated);
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Integer id, @RequestBody User user){
+        UserResponse updated = service.updateUser(user, id);
+        return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Integer id){
         service.deleteUser(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<UserResponse> restoreUser(@PathVariable Integer id){
+        return ResponseEntity.ok(service.restoreUser(id));
+    }
+
+    @PatchMapping("/{id}/disable")
+    public ResponseEntity<UserResponse> disableUser(@PathVariable Integer id){
+        return ResponseEntity.ok(service.disableUser(id));
+    }
+
+    @PatchMapping("/{id}/enable")
+    public ResponseEntity<UserResponse> enableUser(@PathVariable Integer id){
+        return ResponseEntity.ok(service.enableUser(id));
+    }
+
+    //TODO: ADD CASCADE DELETION
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<Void> deletePermanently(@PathVariable Integer id){
+        service.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

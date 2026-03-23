@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.BookRequest;
 import ru.vladmz.books.DTOs.BookResponse;
+import ru.vladmz.books.DTOs.UserResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.services.BookService;
@@ -31,7 +32,8 @@ public class BookController {
 
     //TODO: REPLACE WITH AUTH
     private User getCurrentUser(){
-        return userService.findById(1);
+        UserResponse resp = userService.findById(1);
+        return new User(resp.getId(), resp.getName(), resp.getEmail(), resp.getProfilePicture());
     }
 
     @PostMapping
