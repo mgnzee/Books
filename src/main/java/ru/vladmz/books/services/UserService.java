@@ -6,9 +6,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.BookshelfResponse;
 import ru.vladmz.books.DTOs.UserResponse;
+import ru.vladmz.books.DTOs.UserUpdateRequest;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.exceptions.UserNotFoundException;
+import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.UserRepository;
 
@@ -30,11 +32,11 @@ public class UserService {
 
     public List<UserResponse> findAll(boolean isDeleted, boolean isDisabled){
         return repository.findAllByIsDeletedAndIsDisabled(isDeleted, isDisabled)
-                .stream().map(UserResponse::new).toList();
+                .stream().map(UserMapper::toResponse).toList();
     }
 
     public UserResponse findById(Integer id){
-        return new UserResponse(repository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
+        return UserMapper.toResponse(repository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
     }
 
     @Transactional
@@ -52,16 +54,13 @@ public class UserService {
         newBookshelf.setDescription("This is default bookshelf created automatically");
         newBookshelf.setAuthor(newUser);
         bookshelfRepository.save(newBookshelf);
-        return new UserResponse(newUser);
+        return UserMapper.toResponse(newUser);
     }
 
     @Transactional
-    public UserResponse updateUser(User user, Integer id){
+    public UserResponse updateUser(UserUpdateRequest request, Integer id){
         User currentUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        if(user.getName() != null) currentUser.setName(user.getName());
-        if(user.getEmail() != null) currentUser.setEmail(user.getEmail());
-        if(user.getProfilePicture() != null) currentUser.setProfilePicture(user.getProfilePicture());
-        return new UserResponse(repository.save(currentUser));
+        return UserMapper.toResponse(repository.save(UserMapper.patchUser(currentUser, request)));
     }
 
     @Transactional
@@ -75,21 +74,21 @@ public class UserService {
     public UserResponse restoreUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setDeleted(false);
-        return new UserResponse(repository.save(user));
+        return UserMapper.toResponse(repository.save(user));
     }
 
     @Transactional
     public UserResponse disableUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setDisabled(true);
-        return new UserResponse(repository.save(user));
+        return UserMapper.toResponse(repository.save(user));
     }
 
     @Transactional
     public UserResponse enableUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setDisabled(false);
-        return new UserResponse(repository.save(user));
+        return UserMapper.toResponse(repository.save(user));
     }
 
     @Transactional

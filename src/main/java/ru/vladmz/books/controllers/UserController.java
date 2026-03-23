@@ -11,6 +11,7 @@ import ru.vladmz.books.DTOs.UserCreateRequest;
 import ru.vladmz.books.DTOs.UserResponse;
 import ru.vladmz.books.DTOs.UserUpdateRequest;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.services.UserService;
 
 import java.net.URI;
@@ -29,10 +30,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request){
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setProfilePicture(request.getProfilePicture());
+        User user = UserMapper.toUser(request);
         UserResponse created = service.createUser(user, request.getRawPassword());
 
         URI location = ServletUriComponentsBuilder
@@ -70,8 +68,8 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable Integer id, @RequestBody User user){
-        UserResponse updated = service.updateUser(user, id);
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Integer id, @RequestBody UserUpdateRequest request){
+        UserResponse updated = service.updateUser(request, id);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 

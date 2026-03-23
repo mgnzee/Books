@@ -9,12 +9,19 @@ public class UserResponse {
     private String email;
     private String profilePicture;
 
-    public UserResponse(User user){
-        this.id = user.getId();
-        this.name = user.getName();
-        this.email = user.getEmail();
-        this.profilePicture = user.getProfilePicture();
+    public UserResponse(Integer id, String name, String email, String profilePicture) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.profilePicture = profilePicture;
     }
+
+//    public UserResponse(User user){
+//        this.id = user.getId();
+//        this.name = user.getName();
+//        this.email = user.getEmail();
+//        this.profilePicture = user.getProfilePicture();
+//    }
 
     public Integer getId() {
         return id;
