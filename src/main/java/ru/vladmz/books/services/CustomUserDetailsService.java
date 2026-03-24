@@ -6,7 +6,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.entities.User;
-import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.repositories.UserRepository;
 
 @Service
@@ -29,6 +28,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
                 .authorities("USER")
+                .accountLocked(user.isDisabled())
+                .disabled(user.isDeleted())
                 .build();
     }
 }

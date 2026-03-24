@@ -25,10 +25,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+        System.out.println("Loading SecurityFilterChain...");
         http.csrf(AbstractHttpConfigurer::disable)
                         .authorizeHttpRequests(
                                 auth -> auth
-                                .requestMatchers("/auth/**", "/users").permitAll()
+                                .requestMatchers("/auth/**", "/users", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                         )
                         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
