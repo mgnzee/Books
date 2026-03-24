@@ -64,8 +64,8 @@ public class UserService {
         return UserMapper.toResponse(repository.save(UserMapper.patchUser(currentUser, request)));
     }
 
-    public UserResponse findByEmail(String email){
-        return UserMapper.toResponse(repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email)));
+    public User findByEmail(String email){
+        return repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 
     @Transactional

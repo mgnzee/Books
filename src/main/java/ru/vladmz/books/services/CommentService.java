@@ -1,5 +1,6 @@
 package ru.vladmz.books.services;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.CommentResponse;
@@ -53,7 +54,12 @@ public class CommentService {
     }
 
 
-    public CommentResponse saveComment(Comment comment){
+    @Transactional
+    public CommentResponse saveComment(Comment comment, Integer parentCommentId){
+        if (parentCommentId != null) {
+            Comment parent = repository.findById(parentCommentId).orElseThrow(() -> new CommentNotFoundException(parentCommentId));
+            comment.setParentComment(parent);
+        } else comment.setParentComment(null);
         Comment savedComment = repository.save(comment);
         return new CommentResponse(savedComment, 0L);
     }

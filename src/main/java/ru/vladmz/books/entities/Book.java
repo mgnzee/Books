@@ -56,7 +56,7 @@ public class Book {
     @JoinColumn(name = "uploaded_by", nullable = false)
     private User uploadedBy;
 
-    @OneToMany(mappedBy = "books")
+    @ManyToMany(mappedBy = "books")
     private List<Bookshelf> bookshelves = new ArrayList<>();
 
     public Book(){}

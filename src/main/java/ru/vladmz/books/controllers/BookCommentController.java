@@ -11,6 +11,7 @@ import ru.vladmz.books.DTOs.UserResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.TargetType;
+import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.CommentService;
 import ru.vladmz.books.services.UserService;
 
@@ -21,12 +22,10 @@ import java.util.List;
 public class BookCommentController {
 
     private final CommentService service;
-    private final UserService userService;
 
     @Autowired
-    public BookCommentController(CommentService service, UserService userService) {
+    public BookCommentController(CommentService service) {
         this.service = service;
-        this.userService = userService;
     }
 
     @GetMapping
@@ -44,21 +43,16 @@ public class BookCommentController {
         return service.getReplies(bookId, TargetType.BOOK, commentId);
     }
 
-    //TODO: REPLACE WITH AUTH
-    private User getCurrentUser(){
-        UserResponse resp = userService.findById(1);
-        return new User(resp.getId(), resp.getName(), resp.getEmail(), resp.getProfilePicture());
-    }
 
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookId, @RequestBody @Valid CommentRequest request){
         Comment comment = new Comment();
-        User user = getCurrentUser();
+        User user = SecurityUtils.getCurrentUser();
         comment.setText(request.getText());
         comment.setTargetType(TargetType.BOOK);
         comment.setTargetId(bookId);
         comment.setUser(user);
-        CommentResponse created = service.saveComment(comment);
+        CommentResponse created = service.saveComment(comment, request.getParentCommentId());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

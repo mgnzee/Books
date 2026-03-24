@@ -13,12 +13,12 @@ public class BookRequest {
     private String author;
     private String description;
     private String language;
+    //TODO: NOT FORGET TO UPDATE
 //    @NotBlank
 //    @URL
     private String fileUrl;
-    @URL
+//    @URL
     private String coverImage;
-    private Integer downloadCount;
 
     public String getTitle() {
         return title;
@@ -44,7 +44,4 @@ public class BookRequest {
         return coverImage;
     }
 
-    public Integer getDownloadCount() {
-        return downloadCount;
-    }
 }

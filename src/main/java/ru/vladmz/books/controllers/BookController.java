@@ -10,6 +10,7 @@ import ru.vladmz.books.DTOs.BookResponse;
 import ru.vladmz.books.DTOs.UserResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookService;
 import ru.vladmz.books.services.UserService;
 
@@ -21,24 +22,15 @@ public class BookController {
 
     private final BookService service;
 
-    //TODO: REPLACE WITH AUTH
-    private final UserService userService;
 
     @Autowired
     public BookController(BookService service, UserService userService) {
         this.service = service;
-        this.userService = userService;
-    }
-
-    //TODO: REPLACE WITH AUTH
-    private User getCurrentUser(){
-        UserResponse resp = userService.findById(1);
-        return new User(resp.getId(), resp.getName(), resp.getEmail(), resp.getProfilePicture());
     }
 
     @PostMapping
     public ResponseEntity<BookResponse> createBook(@RequestBody @Valid BookRequest bookRequest){
-        User currentUser = getCurrentUser();
+        User currentUser = SecurityUtils.getCurrentUser();
         Book book = new Book();
         book.setTitle(bookRequest.getTitle());
         book.setAuthor(bookRequest.getAuthor());
