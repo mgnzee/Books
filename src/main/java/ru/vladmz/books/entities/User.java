@@ -118,4 +118,8 @@ public class User {
     public void setDisabled(boolean disabled) {
         isDisabled = disabled;
     }
+
+    public String getPassword() {
+        return password;
+    }
 }

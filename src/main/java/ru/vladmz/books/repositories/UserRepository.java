@@ -13,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<User> findAllByIsDeletedAndIsDisabled(boolean isDeleted, boolean isDisabled);
 
     Optional<User> findByIdAndIsDeletedAndIsDisabled(Integer id, boolean isDeleted, boolean isDisabled);
+
+    Optional<User> findByEmail(String email);
 }

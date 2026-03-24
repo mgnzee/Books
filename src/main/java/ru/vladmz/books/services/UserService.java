@@ -64,6 +64,10 @@ public class UserService {
         return UserMapper.toResponse(repository.save(UserMapper.patchUser(currentUser, request)));
     }
 
+    public UserResponse findByEmail(String email){
+        return UserMapper.toResponse(repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email)));
+    }
+
     @Transactional
     public void deleteUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
