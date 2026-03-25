@@ -16,6 +16,7 @@ import ru.vladmz.books.repositories.BookshelfRepository;
 import java.util.List;
 
 @Service
+@Transactional
 public class BookshelfService {
 
     private final BookshelfRepository repository;

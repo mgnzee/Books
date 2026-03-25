@@ -1,7 +1,9 @@
 package ru.vladmz.books.services;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.BookResponse;
 import ru.vladmz.books.entities.Book;
@@ -11,6 +13,7 @@ import ru.vladmz.books.repositories.BookRepository;
 import java.util.List;
 
 @Service
+@Transactional
 public class BookService {
 
     private final BookRepository repository;
@@ -20,7 +23,7 @@ public class BookService {
         this.repository = repository;
     }
 
-    public List<BookResponse> findAll(PageRequest pageRequest){
+    public List<BookResponse> findAll(Pageable pageRequest){
         return repository.findAll(pageRequest).getContent().stream().map(BookResponse::new).toList();
     }
 
@@ -43,10 +46,11 @@ public class BookService {
     }
 
     public void deleteBook(Integer id){
-        repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
+        if (!repository.existsById(id)) throw new BookNotFoundException(id);
         repository.deleteById(id);
     }
 
+    //TODO: MOVE TO REPOSITORY
     public void incrementDownloadCount(Integer id){
         Book book = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
         book.setDownloadCount(book.getDownloadCount()+1);

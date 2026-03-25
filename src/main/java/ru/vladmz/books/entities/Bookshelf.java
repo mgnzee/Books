@@ -5,8 +5,7 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "bookshelves")
@@ -24,10 +23,10 @@ public class Bookshelf {
     @URL
     private String cover;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @ManyToOne
@@ -40,7 +39,7 @@ public class Bookshelf {
             joinColumns = @JoinColumn(name = "bookshelf_id"),
             inverseJoinColumns = @JoinColumn(name = "book_id")
     )
-    private List<Book> books = new ArrayList<>();
+    private Set<Book> books = new HashSet<>();
 
     public Bookshelf() {}
 
@@ -103,7 +102,20 @@ public class Bookshelf {
         this.author = author;
     }
 
-    public List<Book> getBooks() {
+    public Set<Book> getBooks() {
         return books;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bookshelf that = (Bookshelf) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

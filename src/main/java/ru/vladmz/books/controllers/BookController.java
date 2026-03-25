@@ -8,12 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.BookRequest;
 import ru.vladmz.books.DTOs.BookResponse;
-import ru.vladmz.books.DTOs.UserResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookService;
-import ru.vladmz.books.services.UserService;
 
 import java.util.List;
 
@@ -23,9 +21,8 @@ public class BookController {
 
     private final BookService service;
 
-
     @Autowired
-    public BookController(BookService service, UserService userService) {
+    public BookController(BookService service) {
         this.service = service;
     }
 

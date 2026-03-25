@@ -19,6 +19,7 @@ public class UserMapper {
         return user;
     }
 
+
     public static User patchUser(User user, UserUpdateRequest request){
         if(request.getName() != null) user.setName(request.getName());
         if(request.getEmail() != null) user.setEmail(request.getEmail());

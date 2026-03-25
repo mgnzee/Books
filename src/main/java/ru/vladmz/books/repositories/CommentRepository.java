@@ -26,6 +26,8 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
     @Query("SELECT c, (SELECT COUNT(r) FROM Comment r WHERE r.parentComment.id = c.id) " +
             "FROM Comment c " +
+            "LEFT JOIN FETCH c.user " +
+            "LEFT JOIN FETCH c.parentComment " +
             "WHERE c.targetType = :type AND c.targetId = :targetId AND c.parentComment.id = :parentCommentId")
     List<Object[]> findReplies(TargetType type, Integer targetId, Integer parentCommentId);
 
