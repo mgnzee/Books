@@ -2,7 +2,6 @@ package ru.vladmz.books.DTOs;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
 
 public class BookRequest {
 

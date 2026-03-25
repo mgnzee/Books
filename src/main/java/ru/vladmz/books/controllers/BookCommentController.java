@@ -52,7 +52,7 @@ public class BookCommentController {
         comment.setTargetType(TargetType.BOOK);
         comment.setTargetId(bookId);
         comment.setUser(user);
-        CommentResponse created = service.saveComment(comment, request.getParentCommentId());
+        CommentResponse created = service.saveComment(comment, request.getParentCommentId(), bookId, TargetType.BOOK);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

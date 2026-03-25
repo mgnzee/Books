@@ -52,6 +52,9 @@ public class Book {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "comment_count")
+    private Integer commentCount;
+
     @ManyToOne
     @JoinColumn(name = "uploaded_by", nullable = false)
     private User uploadedBy;
@@ -61,13 +64,14 @@ public class Book {
 
     public Book(){}
 
-    public Book(String title, String author, String description, String language, String fileUrl, String coverImage) {
+    public Book(String title, String author, String description, String language, String fileUrl, String coverImage, Integer commentCount) {
         this.title = title;
         this.author = author;
         this.description = description;
         this.language = language;
         this.fileUrl = fileUrl;
         this.coverImage = coverImage;
+        this.commentCount = commentCount;
         this.downloadCount = 0;
     }
 
@@ -152,5 +156,13 @@ public class Book {
 
     public User getUploadedBy() {
         return uploadedBy;
+    }
+
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(Integer commentCount) {
+        this.commentCount = commentCount;
     }
 }

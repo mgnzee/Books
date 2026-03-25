@@ -13,6 +13,7 @@ public class BookResponse {
     private String fileUrl;
     private String coverImage;
     private Integer downloadCount;
+    private Integer commentCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String uploadedByUsername;
@@ -29,6 +30,7 @@ public class BookResponse {
         this.downloadCount = book.getDownloadCount();
         this.createdAt = book.getCreatedAt();
         this.updatedAt = book.getUpdatedAt();
+        this.commentCount = book.getCommentCount();
         this.uploadedById = book.getUploadedBy().getId();
         this.uploadedByUsername = book.getUploadedBy().getName();
     }
@@ -79,5 +81,9 @@ public class BookResponse {
 
     public Integer getUploadedById() {
         return uploadedById;
+    }
+
+    public Integer getCommentCount() {
+        return commentCount;
     }
 }

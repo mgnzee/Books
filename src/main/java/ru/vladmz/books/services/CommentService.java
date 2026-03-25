@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.CommentResponse;
+import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
@@ -54,13 +55,25 @@ public class CommentService {
     }
 
 
+    //TODO: THIS CERTAINLY SHOULD BE REWRITTEN. I SHOULD MAKE DIFFERENT METHODS FOR DIFFERENT TARGETS OR PROBABLY ADD COMMENTABLE INTERFACE
     @Transactional
-    public CommentResponse saveComment(Comment comment, Integer parentCommentId){
+    public CommentResponse saveComment(Comment comment, Integer parentCommentId, Integer targetId, TargetType targetType){
         if (parentCommentId != null) {
             Comment parent = repository.findById(parentCommentId).orElseThrow(() -> new CommentNotFoundException(parentCommentId));
             comment.setParentComment(parent);
         } else comment.setParentComment(null);
+        switch (targetType){
+            case BOOK -> {
+                Book book = bookRepository.findById(targetId).orElseThrow(() -> new BookNotFoundException(targetId));
+                book.setCommentCount(book.getCommentCount()+1);
+                bookRepository.save(book);
+            }
+            case BOOKSHELF -> {
+                //TODO
+            }
+        }
         Comment savedComment = repository.save(comment);
+
         return new CommentResponse(savedComment, 0L);
     }
 }

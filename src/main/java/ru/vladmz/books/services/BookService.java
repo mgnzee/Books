@@ -1,6 +1,7 @@
 package ru.vladmz.books.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.BookResponse;
 import ru.vladmz.books.entities.Book;
@@ -19,8 +20,8 @@ public class BookService {
         this.repository = repository;
     }
 
-    public List<BookResponse> findAll(){
-        return repository.findAll().stream().map(BookResponse::new).toList();
+    public List<BookResponse> findAll(PageRequest pageRequest){
+        return repository.findAll(pageRequest).getContent().stream().map(BookResponse::new).toList();
     }
 
     public BookResponse findById(Integer id){
