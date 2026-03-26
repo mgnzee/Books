@@ -4,10 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.vladmz.books.DTOs.BookRequest;
-import ru.vladmz.books.DTOs.BookResponse;
-import ru.vladmz.books.DTOs.BookshelfResponse;
-import ru.vladmz.books.entities.Book;
+import ru.vladmz.books.DTOs.book.BookResponse;
+import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.services.BookshelfService;
 

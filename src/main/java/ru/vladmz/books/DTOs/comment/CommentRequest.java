@@ -1,4 +1,4 @@
-package ru.vladmz.books.DTOs;
+package ru.vladmz.books.DTOs.comment;
 
 import jakarta.validation.constraints.NotBlank;
 import ru.vladmz.books.etc.TargetType;

@@ -1,4 +1,4 @@
-package ru.vladmz.books.DTOs;
+package ru.vladmz.books.DTOs.bookshelf;
 
 import ru.vladmz.books.entities.Bookshelf;
 

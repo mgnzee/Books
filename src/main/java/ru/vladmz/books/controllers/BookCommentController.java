@@ -5,15 +5,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.vladmz.books.DTOs.CommentRequest;
-import ru.vladmz.books.DTOs.CommentResponse;
-import ru.vladmz.books.DTOs.UserResponse;
+import ru.vladmz.books.DTOs.comment.CommentPatchRequest;
+import ru.vladmz.books.DTOs.comment.CommentRequest;
+import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.TargetType;
+import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.CommentService;
-import ru.vladmz.books.services.UserService;
 
 import java.util.List;
 
@@ -46,12 +46,11 @@ public class BookCommentController {
 
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookId, @RequestBody @Valid CommentRequest request){
-        Comment comment = new Comment();
+        Comment comment = CommentMapper.toComment(request);
         User user = SecurityUtils.getCurrentUser();
-        comment.setText(request.getText());
+        comment.setUser(user);
         comment.setTargetType(TargetType.BOOK);
         comment.setTargetId(bookId);
-        comment.setUser(user);
         CommentResponse created = service.saveComment(comment, request.getParentCommentId(), bookId, TargetType.BOOK);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -59,12 +58,15 @@ public class BookCommentController {
     //TODO: IMPLEMENT CRUD METHODS FOR COMMENTS
 
     @PatchMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId, @RequestBody @Valid CommentRequest request){
-        return null;
+    public ResponseEntity<CommentResponse> changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId, @RequestBody @Valid CommentPatchRequest request){
+        Comment comment = CommentMapper.toComment(request);
+        CommentResponse updated = service.updateBookComment(comment, commentId, bookId);
+        return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Integer bookId, @PathVariable Integer commentId){
-        return null;
+        service.deleteComment(commentId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

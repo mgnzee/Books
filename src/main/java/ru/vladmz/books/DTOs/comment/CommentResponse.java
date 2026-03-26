@@ -1,4 +1,4 @@
-package ru.vladmz.books.DTOs;
+package ru.vladmz.books.DTOs.comment;
 
 import ru.vladmz.books.entities.Comment;
 import java.time.LocalDateTime;
@@ -16,9 +16,9 @@ public class CommentResponse {
     private Boolean isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Long repliesAmount;
+    private Integer repliesAmount;
 
-    public CommentResponse(Comment comment, Long replyAmount){
+    public CommentResponse(Comment comment){
         this.id = comment.getId();
         this.text = comment.getText();
         this.upvotes = comment.getUpvotes();
@@ -26,7 +26,7 @@ public class CommentResponse {
         this.isDeleted = comment.isDeleted();
         this.createdAt = comment.getCreatedAt();
         this.updatedAt = comment.getUpdatedAt();
-        this.repliesAmount = replyAmount;
+        this.repliesAmount = comment.getRepliesCount();
 
         if(comment.getUser() != null){
             this.userId = comment.getUser().getId();
@@ -81,7 +81,11 @@ public class CommentResponse {
         return updatedAt;
     }
 
-    public Long getRepliesAmount() {
+    public Integer getRepliesAmount() {
         return repliesAmount;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }

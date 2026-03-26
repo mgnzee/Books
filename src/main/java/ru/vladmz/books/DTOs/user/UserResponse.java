@@ -1,6 +1,4 @@
-package ru.vladmz.books.DTOs;
-
-import ru.vladmz.books.entities.User;
+package ru.vladmz.books.DTOs.user;
 
 public class UserResponse {
 

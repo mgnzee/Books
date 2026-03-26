@@ -1,4 +1,4 @@
-package ru.vladmz.books.DTOs;
+package ru.vladmz.books.DTOs.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;

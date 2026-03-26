@@ -45,6 +45,9 @@ public class Comment {
     private Integer upvotes = 0;
     private Integer downvotes = 0;
 
+    @Column(name = "replies_count", nullable = false)
+    private Integer repliesCount = 0;
+
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
@@ -162,5 +165,13 @@ public class Comment {
 
     public List<Comment> getReplies(){
         return replies;
+    }
+
+    public Integer getRepliesCount() {
+        return repliesCount;
+    }
+
+    public void setRepliesCount(Integer repliesCount) {
+        this.repliesCount = repliesCount;
     }
 }
