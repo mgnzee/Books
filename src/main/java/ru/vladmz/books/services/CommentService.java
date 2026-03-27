@@ -1,6 +1,6 @@
 package ru.vladmz.books.services;
 
-import org.hibernate.query.SortDirection;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.Commentable;
-import ru.vladmz.books.etc.CommentSort;
+import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
@@ -40,21 +40,21 @@ public class CommentService {
         this.bookshelfRepository = bookshelfRepository;
     }
 
-    private Commentable findTarget(TargetType targetType, Integer targetId){
+    private @NonNull Commentable findTarget(@NonNull TargetType targetType, Integer targetId){
         return switch (targetType){
             case BOOK -> bookRepository.findById(targetId).orElseThrow(() -> new BookNotFoundException(targetId));
             case BOOKSHELF -> bookshelfRepository.findById(targetId).orElseThrow(() -> new BookshelfNotFoundException(targetId));
         };
     }
 
-    private void checkPermission(Comment comment, Integer commentId){
+    private void checkPermission(@NonNull Comment comment, Integer commentId){
         if (comment.isDeleted()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment with id: " + commentId + " is already deleted.");
         if (!comment.getUser().getId().equals(SecurityUtils.getCurrentUser().getId()))
             throw new AccessDeniedException("No rights to change comment with id: " + commentId);
     }
 
     @Transactional(readOnly = true)
-    public Page<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType targetType, int page, int size, CommentSort sortBy, Sort.Direction direction){
+    public Page<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType targetType, int page, int size, @NonNull EntitySort sortBy, Sort.Direction direction){
         findTarget(targetType, targetId);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy.getFieldName()));
         Page<Comment> commentPage = commentRepository.findAllByIdAndTargetId(targetType, targetId, pageable);
@@ -86,7 +86,7 @@ public class CommentService {
         return CommentMapper.toResponse(commentRepository.save(comment));
     }
 
-    public CommentResponse updateComment(Comment request, Integer commentId, Integer targetId, TargetType targetType){
+    public CommentResponse updateComment(@NonNull Comment request, Integer commentId, Integer targetId, TargetType targetType){
         findTarget(targetType, targetId);
         Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
         checkPermission(comment, commentId);

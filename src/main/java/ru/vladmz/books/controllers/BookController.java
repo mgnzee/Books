@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import ru.vladmz.books.DTOs.book.BookRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookService;
 
@@ -44,9 +46,11 @@ public class BookController {
 
     @GetMapping
     public Page<BookResponse> selectAll(@RequestParam(defaultValue = "0", required = false) Integer page,
-                                        @RequestParam(defaultValue = "10", required = false) Integer size)
+                                        @RequestParam(defaultValue = "10", required = false) Integer size,
+                                        @RequestParam(defaultValue = "TIME") EntitySort sort,
+                                        @RequestParam(defaultValue = "DESC") Sort.Direction direction)
     {
-        return service.findAll(page, size);
+        return service.findAll(page, size, sort, direction);
     }
 
     @GetMapping("/{id}")

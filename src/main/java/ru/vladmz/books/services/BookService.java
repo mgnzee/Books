@@ -1,6 +1,7 @@
 package ru.vladmz.books.services;
 
 import jakarta.transaction.Transactional;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,10 +10,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
+import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
-
-import java.util.List;
 
 @Service
 @Transactional
@@ -25,9 +25,8 @@ public class BookService {
         this.repository = repository;
     }
 
-    public Page<BookResponse> findAll(int page, int size){
-        //TODO: SORT BY UPVOTES, AUTHORS, ETC...
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    public Page<BookResponse> findAll(int page, int size, @NonNull EntitySort sort, Sort.Direction direction){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort.getFieldName()).descending());
         Page<Book> bookPage = repository.findAll(pageable);
         return bookPage.map(BookResponse::new);
     }
@@ -40,7 +39,7 @@ public class BookService {
         return new BookResponse(repository.save(book));
     }
 
-    public BookResponse updateBook(Book book, Integer id){
+    public BookResponse updateBook(@NonNull Book book, Integer id){
         Book currentBook = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
         if(book.getTitle() != null) currentBook.setTitle(book.getTitle());
         if(book.getAuthor() != null) currentBook.setAuthor(book.getAuthor());

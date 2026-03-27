@@ -12,13 +12,11 @@ import ru.vladmz.books.DTOs.comment.CommentRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
-import ru.vladmz.books.etc.CommentSort;
+import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.CommentService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/books/{bookId}/comments")
@@ -35,7 +33,7 @@ public class BookCommentController {
     public Page<CommentResponse> selectByTargetId(@PathVariable Integer bookId,
                                                   @RequestParam(defaultValue = "0") int page,
                                                   @RequestParam(defaultValue = "10") int size,
-                                                  @RequestParam(defaultValue = "TIME") CommentSort sort,
+                                                  @RequestParam(defaultValue = "TIME") EntitySort sort,
                                                   @RequestParam(defaultValue = "DESC") Sort.Direction direction){
         return service.getCommentsByTargetId(bookId, TargetType.BOOK, page, size, sort, direction);
     }

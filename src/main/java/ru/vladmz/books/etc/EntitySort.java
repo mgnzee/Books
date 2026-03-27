@@ -1,12 +1,12 @@
 package ru.vladmz.books.etc;
 
-public enum CommentSort {
+public enum EntitySort {
     TIME("createdAt"),
     UPVOTES("upvotes");
 
     private final String fieldName;
 
-    CommentSort(String fieldName) {
+    EntitySort(String fieldName) {
         this.fieldName = fieldName;
     }
 
