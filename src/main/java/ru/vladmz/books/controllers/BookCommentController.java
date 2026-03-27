@@ -2,6 +2,8 @@ package ru.vladmz.books.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,7 @@ import ru.vladmz.books.DTOs.comment.CommentRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.etc.CommentSort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.security.SecurityUtils;
@@ -29,8 +32,12 @@ public class BookCommentController {
     }
 
     @GetMapping
-    public List<CommentResponse> selectByTargetId(@PathVariable Integer bookId){
-        return service.getCommentsByTargetId(bookId, TargetType.BOOK);
+    public Page<CommentResponse> selectByTargetId(@PathVariable Integer bookId,
+                                                  @RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "10") int size,
+                                                  @RequestParam(defaultValue = "TIME") CommentSort sort,
+                                                  @RequestParam(defaultValue = "DESC") Sort.Direction direction){
+        return service.getCommentsByTargetId(bookId, TargetType.BOOK, page, size, sort, direction);
     }
 
     @GetMapping("/{commentId}")
@@ -39,8 +46,11 @@ public class BookCommentController {
     }
 
     @GetMapping("/{commentId}/replies")
-    public List<CommentResponse> selectReplies(@PathVariable Integer bookId, @PathVariable Integer commentId){
-        return service.getReplies(bookId, TargetType.BOOK, commentId);
+    public Page<CommentResponse> selectReplies(@PathVariable Integer bookId,
+                                               @PathVariable Integer commentId,
+                                               @RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "10") int size){
+        return service.getReplies(bookId, TargetType.BOOK, commentId, page, size);
     }
 
 

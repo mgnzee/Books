@@ -1,6 +1,11 @@
 package ru.vladmz.books.services;
 
+import org.hibernate.query.SortDirection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -9,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.Commentable;
+import ru.vladmz.books.etc.CommentSort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
@@ -18,8 +24,6 @@ import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
 import ru.vladmz.books.security.SecurityUtils;
-
-import java.util.List;
 
 @Service
 @Transactional
@@ -50,14 +54,18 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public List<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType targetType){
+    public Page<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType targetType, int page, int size, CommentSort sortBy, Sort.Direction direction){
         findTarget(targetType, targetId);
-        return commentRepository.findAllByIdAndTargetId(targetType, targetId).stream().map(CommentMapper::toResponse).toList();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy.getFieldName()));
+        Page<Comment> commentPage = commentRepository.findAllByIdAndTargetId(targetType, targetId, pageable);
+        return commentPage.map(CommentMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<CommentResponse> getReplies(Integer targetId, TargetType type, Integer commentId){
-        return commentRepository.findReplies(type, targetId, commentId).stream().map(CommentMapper::toResponse).toList();
+    public Page<CommentResponse> getReplies(Integer targetId, TargetType type, Integer commentId, int page, int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
+        Page<Comment> commentPage = commentRepository.findReplies(type, targetId, commentId, pageable);
+        return commentPage.map(CommentMapper::toResponse);
     }
 
     @Transactional(readOnly = true)

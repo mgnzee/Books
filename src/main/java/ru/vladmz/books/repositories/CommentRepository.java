@@ -1,5 +1,7 @@
 package ru.vladmz.books.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,14 +23,14 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
             "FROM Comment c " +
             "LEFT JOIN FETCH c.user " +
             "WHERE c.targetType = :type AND c.targetId = :targetId AND c.parentComment IS NULL")
-    List<Comment> findAllByIdAndTargetId(TargetType type, Integer targetId);
+    Page<Comment> findAllByIdAndTargetId(TargetType type, Integer targetId, Pageable pageable);
 
     @Query("SELECT c " +
             "FROM Comment c " +
             "LEFT JOIN FETCH c.user " +
             "LEFT JOIN FETCH c.parentComment " +
             "WHERE c.targetType = :type AND c.targetId = :targetId AND c.parentComment.id = :parentCommentId")
-    List<Comment> findReplies(TargetType type, Integer targetId, Integer parentCommentId);
+    Page<Comment> findReplies(TargetType type, Integer targetId, Integer parentCommentId, Pageable pageable);
 
     /**
      * Finds comments by target and id of the comment.

@@ -2,7 +2,10 @@ package ru.vladmz.books.services;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
@@ -22,8 +25,11 @@ public class BookService {
         this.repository = repository;
     }
 
-    public List<BookResponse> findAll(Pageable pageRequest){
-        return repository.findAll(pageRequest).getContent().stream().map(BookResponse::new).toList();
+    public Page<BookResponse> findAll(int page, int size){
+        //TODO: SORT BY UPVOTES, AUTHORS, ETC...
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Book> bookPage = repository.findAll(pageable);
+        return bookPage.map(BookResponse::new);
     }
 
     public BookResponse findById(Integer id){

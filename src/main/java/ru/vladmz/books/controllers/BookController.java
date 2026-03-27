@@ -2,6 +2,7 @@ package ru.vladmz.books.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,10 +43,10 @@ public class BookController {
     }
 
     @GetMapping
-    public List<BookResponse> selectAll(@RequestParam(defaultValue = "0", required = false) Integer page,
+    public Page<BookResponse> selectAll(@RequestParam(defaultValue = "0", required = false) Integer page,
                                         @RequestParam(defaultValue = "10", required = false) Integer size)
     {
-        return service.findAll(PageRequest.of(page, size));
+        return service.findAll(page, size);
     }
 
     @GetMapping("/{id}")
