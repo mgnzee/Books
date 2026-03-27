@@ -175,4 +175,12 @@ public class Book implements Commentable{
     public void decrementCommentCount() {
         this.commentCount--;
     }
+
+    public void incrementDownloadCount(){
+        this.downloadCount++;
+    }
+
+    public void decrementDownloadCount(){
+        this.downloadCount--;
+    }
 }

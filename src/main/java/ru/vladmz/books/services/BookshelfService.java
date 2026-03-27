@@ -5,11 +5,13 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vladmz.books.DTOs.book.BookResponse;
+import ru.vladmz.books.DTOs.bookshelf.BookshelfPatchRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
+import ru.vladmz.books.mappers.BookshelfMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.security.SecurityUtils;
@@ -63,8 +65,7 @@ public class BookshelfService {
         checkPermission(bookshelf);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
-        bookshelf.getBooks().add(book);
-        //bookshelfRepository.save(bookshelf);
+        if (bookshelf.getBooks().add(book)) book.incrementDownloadCount();
         return new BookResponse(book);
     }
 
@@ -75,14 +76,12 @@ public class BookshelfService {
         bookshelfRepository.removeBookFromBookshelf(bookshelfId, bookId);
     }
 
-    public BookshelfResponse updateBookshelf(Integer bookshelfId, Bookshelf bookshelf){
+    public BookshelfResponse updateBookshelf(Integer bookshelfId, BookshelfPatchRequest bookshelf){
         Bookshelf currentBookshelf = bookshelfRepository.findById(bookshelfId)
                 .orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
         checkPermission(currentBookshelf);
-        if(bookshelf.getTitle() != null) currentBookshelf.setTitle(bookshelf.getTitle());
-        if(bookshelf.getDescription() != null) currentBookshelf.setDescription(bookshelf.getDescription());
-        if(bookshelf.getCover() != null) currentBookshelf.setCover(bookshelf.getCover());
-        return new BookshelfResponse(currentBookshelf);
+        BookshelfMapper.patchBookshelf(currentBookshelf, bookshelf);
+        return BookshelfMapper.toResponse(currentBookshelf);
     }
 
     public void deleteBookshelf(Integer bookshelfId){

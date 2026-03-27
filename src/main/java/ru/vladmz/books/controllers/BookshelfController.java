@@ -5,8 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.book.BookResponse;
+import ru.vladmz.books.DTOs.bookshelf.BookshelfPatchRequest;
+import ru.vladmz.books.DTOs.bookshelf.BookshelfRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Bookshelf;
+import ru.vladmz.books.mappers.BookshelfMapper;
 import ru.vladmz.books.services.BookshelfService;
 
 import java.util.List;
@@ -23,8 +26,8 @@ public class BookshelfController {
     }
 
     @PostMapping
-    public ResponseEntity<BookshelfResponse> createBookshelf(@RequestBody Bookshelf bookshelf){
-        BookshelfResponse created = service.createBookshelf(bookshelf);
+    public ResponseEntity<BookshelfResponse> createBookshelf(@RequestBody BookshelfRequest bookshelf){
+        BookshelfResponse created = service.createBookshelf(BookshelfMapper.toBookshelf(bookshelf));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -56,7 +59,7 @@ public class BookshelfController {
     }
 
     @PatchMapping("/{bookshelfId}")
-    public ResponseEntity<BookshelfResponse> updateBookshelf(@PathVariable Integer bookshelfId, @RequestBody Bookshelf bookshelf){
+    public ResponseEntity<BookshelfResponse> updateBookshelf(@PathVariable Integer bookshelfId, @RequestBody BookshelfPatchRequest bookshelf){
         BookshelfResponse updated = service.updateBookshelf(bookshelfId, bookshelf);
         return ResponseEntity.ok(updated);
     }
