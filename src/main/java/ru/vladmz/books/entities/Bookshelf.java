@@ -9,7 +9,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "bookshelves")
-public class Bookshelf {
+public class Bookshelf implements Commentable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -117,5 +117,15 @@ public class Bookshelf {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @Override
+    public void incrementCommentCount() {
+        //TODO: ADD COMMENTS TO BOOKSHELVES
+    }
+
+    @Override
+    public void decrementCommentCount() {
+        //TODO: ADD COMMENTS TO BOOKSHELVES
     }
 }

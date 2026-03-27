@@ -9,7 +9,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserCreateRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
-import ru.vladmz.books.DTOs.user.UserUpdateRequest;
+import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.services.UserService;
@@ -68,7 +68,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable Integer id, @RequestBody UserUpdateRequest request){
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Integer id, @RequestBody UserPatchRequest request){
         UserResponse updated = service.updateUser(request, id);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }

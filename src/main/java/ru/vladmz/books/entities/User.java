@@ -57,7 +57,7 @@ public class User {
         this.profilePicture = profilePicture;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

@@ -7,7 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserResponse;
-import ru.vladmz.books.DTOs.user.UserUpdateRequest;
+import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.exceptions.UserNotFoundException;
@@ -59,7 +59,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateUser(UserUpdateRequest request, Integer id){
+    public UserResponse updateUser(UserPatchRequest request, Integer id){
         User currentUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         return UserMapper.toResponse(repository.save(UserMapper.patchUser(currentUser, request)));
     }

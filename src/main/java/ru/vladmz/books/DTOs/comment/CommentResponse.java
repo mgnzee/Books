@@ -20,7 +20,7 @@ public class CommentResponse {
 
     public CommentResponse(Comment comment){
         this.id = comment.getId();
-        this.text = comment.getText();
+        this.userId = comment.getUser().getId();
         this.upvotes = comment.getUpvotes();
         this.downvotes = comment.getDownvotes();
         this.isDeleted = comment.isDeleted();
@@ -28,10 +28,16 @@ public class CommentResponse {
         this.updatedAt = comment.getUpdatedAt();
         this.repliesAmount = comment.getRepliesCount();
 
-        if(comment.getUser() != null){
-            this.userId = comment.getUser().getId();
-            this.userName = comment.getUser().getName();
-            this.userAvatar = comment.getUser().getProfilePicture();
+        if (comment.isDeleted()){
+            this.text = "This comment was deleted.";
+            this.userName = null;
+            this.userAvatar = null;
+        } else{
+            this.text = comment.getText();
+            if(comment.getUser() != null){
+                this.userName = comment.getUser().getName();
+                this.userAvatar = comment.getUser().getProfilePicture();
+            }
         }
 
         if (comment.getParentComment() != null) this.parentCommentId = comment.getParentComment().getId();

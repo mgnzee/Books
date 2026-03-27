@@ -55,12 +55,10 @@ public class BookCommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    //TODO: IMPLEMENT CRUD METHODS FOR COMMENTS
-
     @PatchMapping("/{commentId}")
     public ResponseEntity<CommentResponse> changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId, @RequestBody @Valid CommentPatchRequest request){
         Comment comment = CommentMapper.toComment(request);
-        CommentResponse updated = service.updateBookComment(comment, commentId, bookId);
+        CommentResponse updated = service.updateComment(comment, commentId, bookId, TargetType.BOOK);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 

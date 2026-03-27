@@ -1,17 +1,23 @@
 package ru.vladmz.books.services;
 
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
-import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Comment;
+import ru.vladmz.books.entities.Commentable;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
+import ru.vladmz.books.exceptions.BookshelfNotFoundException;
 import ru.vladmz.books.exceptions.CommentNotFoundException;
 import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.repositories.BookRepository;
+import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
+import ru.vladmz.books.security.SecurityUtils;
 
 import java.util.List;
 
@@ -19,72 +25,76 @@ import java.util.List;
 @Transactional
 public class CommentService {
 
-    private final CommentRepository repository;
+    private final CommentRepository commentRepository;
     private final BookRepository bookRepository;
+    private final BookshelfRepository bookshelfRepository;
 
     @Autowired
-    public CommentService(CommentRepository repository, BookRepository bookRepository) {
-        this.repository = repository;
+    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository, SecurityUtils securityUtils) {
+        this.commentRepository = repository;
         this.bookRepository = bookRepository;
+        this.bookshelfRepository = bookshelfRepository;
     }
 
-
-    //TODO: FIX N+1 PROBLEM HERE:
-    public List<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType type){
-        bookRepository.findById(targetId)
-                .orElseThrow(() -> new BookNotFoundException(targetId));
-
-        return repository.findAllByIdAndTargetId(type, targetId).stream().map(CommentMapper::toResponse).toList();
+    private Commentable findTarget(TargetType targetType, Integer targetId){
+        return switch (targetType){
+            case BOOK -> bookRepository.findById(targetId).orElseThrow(() -> new BookNotFoundException(targetId));
+            case BOOKSHELF -> bookshelfRepository.findById(targetId).orElseThrow(() -> new BookshelfNotFoundException(targetId));
+        };
     }
 
+    private void checkPermission(Comment comment, Integer commentId){
+        if (comment.isDeleted()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment with id: " + commentId + " is already deleted.");
+        if (!comment.getUser().getId().equals(SecurityUtils.getCurrentUser().getId()))
+            throw new AccessDeniedException("No rights to change comment with id: " + commentId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType targetType){
+        findTarget(targetType, targetId);
+        return commentRepository.findAllByIdAndTargetId(targetType, targetId).stream().map(CommentMapper::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<CommentResponse> getReplies(Integer targetId, TargetType type, Integer commentId){
-        return repository.findReplies(type, targetId, commentId).stream().map(CommentMapper::toResponse).toList();
+        return commentRepository.findReplies(type, targetId, commentId).stream().map(CommentMapper::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public CommentResponse findById(Integer commentId, TargetType targetType, Integer targetId){
-        return CommentMapper.toResponse(repository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() ->
+        return CommentMapper.toResponse(commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() ->
                 new CommentNotFoundException(commentId)));
     }
 
-
-    //TODO: THIS CERTAINLY SHOULD BE REWRITTEN. I SHOULD MAKE DIFFERENT METHODS FOR DIFFERENT TARGETS OR PROBABLY ADD COMMENTABLE INTERFACE
-    @Transactional
     public CommentResponse saveComment(Comment comment, Integer parentCommentId, Integer targetId, TargetType targetType){
+        Commentable target = findTarget(targetType, targetId);
+        target.incrementCommentCount();
         if (parentCommentId != null) {
-            Comment parent = repository.findById(parentCommentId).orElseThrow(() -> new CommentNotFoundException(parentCommentId));
+            Comment parent = commentRepository.findById(parentCommentId).orElseThrow(() -> new CommentNotFoundException(parentCommentId));
             comment.setParentComment(parent);
             parent.setRepliesCount(parent.getRepliesCount()+1);
         } else comment.setParentComment(null);
-        switch (targetType){
-            case BOOK -> {
-                Book book = bookRepository.findById(targetId).orElseThrow(() -> new BookNotFoundException(targetId));
-                book.setCommentCount(book.getCommentCount()+1);
-                bookRepository.save(book);
-            }
-            case BOOKSHELF -> {
-                //TODO
-            }
-        }
-        Comment savedComment = repository.save(comment);
 
-        return CommentMapper.toResponse(savedComment);
+        return CommentMapper.toResponse(commentRepository.save(comment));
     }
 
-    public CommentResponse updateBookComment(Comment request, Integer commentId, Integer bookId){
-        if (!bookRepository.existsById(bookId)) throw new BookNotFoundException(bookId);
-        Comment comment = repository.findByIdAndTarget(commentId, TargetType.BOOK, bookId).orElseThrow(() -> new CommentNotFoundException(commentId));
+    public CommentResponse updateComment(Comment request, Integer commentId, Integer targetId, TargetType targetType){
+        findTarget(targetType, targetId);
+        Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
+        checkPermission(comment, commentId);
         comment.setText(request.getText());
-        return CommentMapper.toResponse(repository.save(comment));
+        return CommentMapper.toResponse(commentRepository.save(comment));
     }
 
     public void deleteComment(Integer commentId){
-        Comment comment = repository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(commentId));
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(commentId));
+        checkPermission(comment, commentId);
         if (comment.getParentComment() != null){
             Comment parent = comment.getParentComment();
             parent.setRepliesCount(Math.max(0, parent.getRepliesCount()-1));
-            repository.save(parent);
+            commentRepository.save(parent);
         }
         comment.delete();
-        repository.save(comment);
+        commentRepository.save(comment);
     }
 }

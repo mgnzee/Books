@@ -12,7 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "books")
-public class Book {
+public class Book implements Commentable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -164,5 +164,15 @@ public class Book {
 
     public void setCommentCount(Integer commentCount) {
         this.commentCount = commentCount;
+    }
+
+    @Override
+    public void incrementCommentCount() {
+        this.commentCount++;
+    }
+
+    @Override
+    public void decrementCommentCount() {
+        this.commentCount--;
     }
 }
