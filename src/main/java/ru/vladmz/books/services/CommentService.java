@@ -34,7 +34,7 @@ public class CommentService {
     private final BookshelfRepository bookshelfRepository;
 
     @Autowired
-    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository, SecurityUtils securityUtils) {
+    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository) {
         this.commentRepository = repository;
         this.bookRepository = bookRepository;
         this.bookshelfRepository = bookshelfRepository;
@@ -94,15 +94,17 @@ public class CommentService {
         return CommentMapper.toResponse(commentRepository.save(comment));
     }
 
-    public void deleteComment(Integer commentId){
+    public void deleteComment(Integer commentId, TargetType targetType, Integer targetId){
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(commentId));
         checkPermission(comment, commentId);
+        Commentable target = findTarget(targetType, targetId);
+        target.decrementCommentCount();
         if (comment.getParentComment() != null){
             Comment parent = comment.getParentComment();
             parent.setRepliesCount(Math.max(0, parent.getRepliesCount()-1));
-            commentRepository.save(parent);
+            //commentRepository.save(parent);
         }
         comment.delete();
-        commentRepository.save(comment);
+        //commentRepository.save(comment);
     }
 }

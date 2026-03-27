@@ -74,7 +74,7 @@ public class BookCommentController {
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Integer bookId, @PathVariable Integer commentId){
-        service.deleteComment(commentId);
+        service.deleteComment(commentId, TargetType.BOOK, bookId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
