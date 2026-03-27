@@ -1,8 +1,9 @@
 package ru.vladmz.books.services;
 
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Book;
@@ -11,6 +12,7 @@ import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
+import ru.vladmz.books.security.SecurityUtils;
 
 import java.util.List;
 
@@ -18,65 +20,74 @@ import java.util.List;
 @Transactional
 public class BookshelfService {
 
-    private final BookshelfRepository repository;
+    private final BookshelfRepository bookshelfRepository;
     private final BookRepository bookRepository;
 
     @Autowired
     public BookshelfService(BookshelfRepository repository, BookRepository bookRepository) {
-        this.repository = repository;
+        this.bookshelfRepository = repository;
         this.bookRepository = bookRepository;
     }
 
-    public List<BookshelfResponse> findAll(){
-        return repository.findAll().stream().map(BookshelfResponse::new).toList();
+    private void checkPermission(Bookshelf bookshelf){
+        if (!bookshelf.getAuthor().getId().equals(SecurityUtils.getCurrentUser().getId()))
+            throw new AccessDeniedException("No rights to change bookshelf with id: " + bookshelf.getId());
     }
 
+    @Transactional(readOnly = true)
+    public List<BookshelfResponse> findAll(){
+        return bookshelfRepository.findAll().stream().map(BookshelfResponse::new).toList();
+    }
+
+    @Transactional(readOnly = true)
     public BookshelfResponse findById(Integer id){
-        return new BookshelfResponse(repository.findById(id)
+        return new BookshelfResponse(bookshelfRepository.findById(id)
                 .orElseThrow(() -> new BookshelfNotFoundException(id)));
     }
 
     public BookshelfResponse createBookshelf(Bookshelf bookshelf) {
-        return new BookshelfResponse(repository.save(bookshelf));
+        return new BookshelfResponse(bookshelfRepository.save(bookshelf));
     }
 
+    //TODO: FIX N+1
+    @Transactional(readOnly = true)
     public List<BookResponse> findBooksByBookshelfId(Integer id) {
-        Bookshelf bookshelf = repository.findById(id)
+        Bookshelf bookshelf = bookshelfRepository.findById(id)
                 .orElseThrow(() -> new BookshelfNotFoundException(id));
         return bookshelf.getBooks().stream().map(BookResponse::new).toList();
     }
 
-    public BookResponse addBookToBookshelf(Integer id, Integer bookId){
-        Bookshelf bookshelf = repository.findById(id)
-                .orElseThrow(() -> new BookshelfNotFoundException(id));
+    public BookResponse addBookToBookshelf(Integer bookshelfId, Integer bookId){
+        Bookshelf bookshelf = bookshelfRepository.findById(bookshelfId)
+                .orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
+        checkPermission(bookshelf);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
         bookshelf.getBooks().add(book);
-        repository.save(bookshelf);
+        //bookshelfRepository.save(bookshelf);
         return new BookResponse(book);
     }
 
-    @Transactional
-    public void deleteBookFromBookshelf(Integer id, Integer bookId){
-        Bookshelf bookshelf = repository.findById(id)
-                .orElseThrow(() -> new BookshelfNotFoundException(id));
-        Book bookToRemove = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException(bookId));
-        bookshelf.getBooks().remove(bookToRemove);
-        repository.save(bookshelf);
+    public void deleteBookFromBookshelf(Integer bookshelfId, Integer bookId){
+        if (!bookRepository.existsById(bookId)) throw new BookNotFoundException(bookId);
+        Bookshelf bookShelf = bookshelfRepository.findById(bookshelfId).orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
+        checkPermission(bookShelf);
+        bookshelfRepository.removeBookFromBookshelf(bookshelfId, bookId);
     }
 
-    public BookshelfResponse updateBookshelf(Integer id, Bookshelf bookshelf){
-        Bookshelf currentBookshelf = repository.findById(id)
-                .orElseThrow(() -> new BookshelfNotFoundException(id));
+    public BookshelfResponse updateBookshelf(Integer bookshelfId, Bookshelf bookshelf){
+        Bookshelf currentBookshelf = bookshelfRepository.findById(bookshelfId)
+                .orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
+        checkPermission(currentBookshelf);
         if(bookshelf.getTitle() != null) currentBookshelf.setTitle(bookshelf.getTitle());
         if(bookshelf.getDescription() != null) currentBookshelf.setDescription(bookshelf.getDescription());
         if(bookshelf.getCover() != null) currentBookshelf.setCover(bookshelf.getCover());
-        return new BookshelfResponse(repository.save(currentBookshelf));
+        return new BookshelfResponse(currentBookshelf);
     }
 
-    public void deleteBookshelf(Integer id){
-        repository.findById(id).orElseThrow(() -> new BookshelfNotFoundException(id));
-        repository.deleteById(id);
+    public void deleteBookshelf(Integer bookshelfId){
+        Bookshelf bookshelf = bookshelfRepository.findById(bookshelfId).orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
+        checkPermission(bookshelf);
+        bookshelfRepository.deleteById(bookshelfId);
     }
 }

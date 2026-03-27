@@ -33,37 +33,37 @@ public class BookshelfController {
         return service.findAll();
     }
 
-    @GetMapping("/{id}")
-    public BookshelfResponse selectById(@PathVariable Integer id){
-        return service.findById(id);
+    @GetMapping("/{bookshelfId}")
+    public BookshelfResponse selectById(@PathVariable Integer bookshelfId){
+        return service.findById(bookshelfId);
     }
 
-    @GetMapping("/{id}/books")
-    public List<BookResponse> selectBooks(@PathVariable Integer id){
-        return service.findBooksByBookshelfId(id);
+    @GetMapping("/{bookshelfId}/books")
+    public List<BookResponse> selectBooks(@PathVariable Integer bookshelfId){
+        return service.findBooksByBookshelfId(bookshelfId);
     }
 
-    @PostMapping("/{id}/books/{book_id}")
-    public ResponseEntity<BookResponse> addBookToBookshelf(@PathVariable Integer id, @PathVariable Integer book_id){
-        BookResponse created = service.addBookToBookshelf(id, book_id);
+    @PostMapping("/{bookshelfId}/books/{bookId}")
+    public ResponseEntity<BookResponse> addBookToBookshelf(@PathVariable Integer bookshelfId, @PathVariable Integer bookId){
+        BookResponse created = service.addBookToBookshelf(bookshelfId, bookId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @DeleteMapping("/{id}/books/{book_id}")
-    public ResponseEntity<Void> deleteBookFromBookshelf(@PathVariable Integer id, @PathVariable Integer book_id){
-        service.deleteBookFromBookshelf(id, book_id);
+    @DeleteMapping("/{bookshelfId}/books/{bookId}")
+    public ResponseEntity<Void> deleteBookFromBookshelf(@PathVariable Integer bookshelfId, @PathVariable Integer bookId){
+        service.deleteBookFromBookshelf(bookshelfId, bookId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<BookshelfResponse> updateBookshelf(@PathVariable Integer id, @RequestBody Bookshelf bookshelf){
-        BookshelfResponse updated = service.updateBookshelf(id, bookshelf);
+    @PatchMapping("/{bookshelfId}")
+    public ResponseEntity<BookshelfResponse> updateBookshelf(@PathVariable Integer bookshelfId, @RequestBody Bookshelf bookshelf){
+        BookshelfResponse updated = service.updateBookshelf(bookshelfId, bookshelf);
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBookshelf(@PathVariable Integer id){
-        service.deleteBookshelf(id);
+    @DeleteMapping("/{bookshelfId}")
+    public ResponseEntity<Void> deleteBookshelf(@PathVariable Integer bookshelfId){
+        service.deleteBookshelf(bookshelfId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
