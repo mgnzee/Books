@@ -24,7 +24,7 @@ public class BookMapper {
         book.setLanguage(request.getLanguage());
         book.setFileUrl(request.getFileUrl());
         book.setCoverImage(request.getCoverImage());
-        book.setDownloadCount(0);
+        book.setAuthor(request.getAuthor());
 
         return book;
     }

@@ -8,6 +8,7 @@ import ru.vladmz.books.exceptions.ErrorResponse;
 import ru.vladmz.books.exceptions.ResourceNotFoundException;
 import ru.vladmz.books.exceptions.UserNotAuthenticatedException;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -31,5 +32,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserNotAuth(UserNotAuthenticatedException ex){
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
                 body(generateResponse(ex, HttpStatus.UNAUTHORIZED, "User not authenticated"));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(generateResponse(ex, HttpStatus.FORBIDDEN, "Access denied"));
     }
 }

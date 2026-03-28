@@ -9,7 +9,9 @@ import ru.vladmz.books.DTOs.bookshelf.BookshelfPatchRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Bookshelf;
+import ru.vladmz.books.entities.User;
 import ru.vladmz.books.mappers.BookshelfMapper;
+import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookshelfService;
 
 import java.util.List;
@@ -26,8 +28,11 @@ public class BookshelfController {
     }
 
     @PostMapping
-    public ResponseEntity<BookshelfResponse> createBookshelf(@RequestBody BookshelfRequest bookshelf){
-        BookshelfResponse created = service.createBookshelf(BookshelfMapper.toBookshelf(bookshelf));
+    public ResponseEntity<BookshelfResponse> createBookshelf(@RequestBody BookshelfRequest request){
+        User currentUser = SecurityUtils.getCurrentUser();
+        Bookshelf bookshelf = BookshelfMapper.toBookshelf(request);
+        bookshelf.setAuthor(currentUser);
+        BookshelfResponse created = service.createBookshelf(bookshelf);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

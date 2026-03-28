@@ -44,7 +44,7 @@ public class Book implements Commentable{
     private String coverImage;
 
     @Column(name = "download_count")
-    private Integer downloadCount;
+    private Integer downloadCount = 0;
 
     @Column(updatable = false, name = "created_at")
     private LocalDateTime createdAt;
@@ -53,7 +53,7 @@ public class Book implements Commentable{
     private LocalDateTime updatedAt;
 
     @Column(name = "comment_count")
-    private Integer commentCount;
+    private Integer commentCount = 0;
 
     @ManyToOne
     @JoinColumn(name = "uploaded_by", nullable = false)
