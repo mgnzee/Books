@@ -183,4 +183,8 @@ public class Book implements Commentable{
     public void decrementDownloadCount(){
         this.downloadCount--;
     }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
 }

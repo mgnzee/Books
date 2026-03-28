@@ -1,18 +1,23 @@
 package ru.vladmz.books.services;
 
-import jakarta.transaction.Transactional;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
+import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.exceptions.BookNotFoundException;
+import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.repositories.BookRepository;
+import ru.vladmz.books.security.SecurityUtils;
 
 @Service
 @Transactional
@@ -25,12 +30,19 @@ public class BookService {
         this.repository = repository;
     }
 
+    private void checkPermission(Book book){
+        if (!book.getUploadedBy().getId().equals(SecurityUtils.getCurrentUser().getId()))
+            throw new AccessDeniedException("No rights to change book with id: " + book.getId());
+    }
+
+    @Transactional(readOnly = true)
     public Page<BookResponse> findAll(int page, int size, @NonNull EntitySort sort, Sort.Direction direction){
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort.getFieldName()).descending());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort.getFieldName()));
         Page<Book> bookPage = repository.findAll(pageable);
         return bookPage.map(BookResponse::new);
     }
 
+    @Transactional(readOnly = true)
     public BookResponse findById(Integer id){
         return new BookResponse(repository.findById(id).orElseThrow(() -> new BookNotFoundException(id)));
     }
@@ -39,25 +51,16 @@ public class BookService {
         return new BookResponse(repository.save(book));
     }
 
-    public BookResponse updateBook(@NonNull Book book, Integer id){
+    public BookResponse updateBook(@NonNull BookPatchRequest request, Integer id){
         Book currentBook = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
-        if(book.getTitle() != null) currentBook.setTitle(book.getTitle());
-        if(book.getAuthor() != null) currentBook.setAuthor(book.getAuthor());
-        if(book.getDescription() != null) currentBook.setDescription(book.getDescription());
-        if(book.getCoverImage() != null) currentBook.setCoverImage(book.getCoverImage());
-        if(book.getLanguage() != null) currentBook.setLanguage(book.getLanguage());
-        return new BookResponse(repository.save(currentBook));
+        checkPermission(currentBook);
+        BookMapper.patchBook(currentBook, request);
+        return new BookResponse(currentBook);
     }
 
     public void deleteBook(Integer id){
-        if (!repository.existsById(id)) throw new BookNotFoundException(id);
-        repository.deleteById(id);
-    }
-
-    //TODO: MOVE TO REPOSITORY
-    public void incrementDownloadCount(Integer id){
         Book book = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
-        book.setDownloadCount(book.getDownloadCount()+1);
-        repository.save(book);
+        checkPermission(book);
+        repository.delete(book);
     }
 }

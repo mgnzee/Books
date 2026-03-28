@@ -8,11 +8,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
+import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookService;
 
@@ -32,13 +34,7 @@ public class BookController {
     @PostMapping
     public ResponseEntity<BookResponse> createBook(@RequestBody @Valid BookRequest bookRequest){
         User currentUser = SecurityUtils.getCurrentUser();
-        Book book = new Book();
-        book.setTitle(bookRequest.getTitle());
-        book.setAuthor(bookRequest.getAuthor());
-        book.setCoverImage(bookRequest.getCoverImage());
-        book.setDescription(bookRequest.getDescription());
-        book.setLanguage(bookRequest.getLanguage());
-        book.setDownloadCount(0);
+        Book book = BookMapper.toBook(bookRequest);
         book.setUploadedBy(currentUser);
         BookResponse created = service.createBook(book);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -59,7 +55,7 @@ public class BookController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<BookResponse> updateBook(@PathVariable Integer id, @RequestBody Book book){
+    public ResponseEntity<BookResponse> updateBook(@PathVariable Integer id, @RequestBody @Valid BookPatchRequest book){
         BookResponse updated = service.updateBook(book, id);
         return ResponseEntity.ok(updated);
     }

@@ -87,6 +87,6 @@ public class BookshelfService {
     public void deleteBookshelf(Integer bookshelfId){
         Bookshelf bookshelf = bookshelfRepository.findById(bookshelfId).orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
         checkPermission(bookshelf);
-        bookshelfRepository.deleteById(bookshelfId);
+        bookshelfRepository.delete(bookshelf);
     }
 }

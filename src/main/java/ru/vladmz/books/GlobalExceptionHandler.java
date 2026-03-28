@@ -32,5 +32,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).
                 body(generateResponse(ex, HttpStatus.UNAUTHORIZED, "User not authenticated"));
     }
-
 }
