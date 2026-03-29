@@ -1,10 +1,11 @@
 package ru.vladmz.books.services;
 
-import jakarta.transaction.Transactional;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
@@ -15,14 +16,13 @@ import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.UserRepository;
+import ru.vladmz.books.security.SecurityUtils;
 
 import java.util.List;
 
 @Service
 @Transactional
 public class UserService {
-
-    //TODO: ADD PERMISSION CHECK
 
     private final UserRepository repository;
     private final BookshelfRepository bookshelfRepository;
@@ -35,22 +35,28 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    private void checkPermission(User user){
+        if (!user.getId().equals(SecurityUtils.getCurrentUser().getId()))
+            throw new AccessDeniedException("No rights to change profile with id: " + user.getId());
+    }
+
+    @Transactional(readOnly = true)
     public List<UserResponse> findAll(boolean isDeleted, boolean isDisabled){
         return repository.findAllByIsDeletedAndIsDisabled(isDeleted, isDisabled)
                 .stream().map(UserMapper::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public UserResponse findById(Integer id){
         return UserMapper.toResponse(repository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BookshelfResponse> findBookshelvesOfUser(Integer id){
         repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         return bookshelfRepository.findByAuthorId(id).stream().map(BookshelfResponse::new).toList();
     }
 
-    @Transactional
     public UserResponse createUser(@NonNull User user, String rawPassword){
         user.setPassword(passwordEncoder.encode(rawPassword));
         User newUser = repository.save(user);
@@ -62,51 +68,48 @@ public class UserService {
         return UserMapper.toResponse(newUser);
     }
 
-    @Transactional
     public UserResponse updateUser(UserPatchRequest request, Integer id){
         User currentUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        return UserMapper.toResponse(repository.save(UserMapper.patchUser(currentUser, request)));
+        checkPermission(currentUser);
+        return UserMapper.toResponse(UserMapper.patchUser(currentUser, request));
     }
 
+    @Transactional(readOnly = true)
     public User findByEmail(String email){
         return repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 
     public UserResponse updateEmail(UserChangeEmailRequest request, Integer userId){
         User user = repository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        checkPermission(user);
         if (request.getEmail() != null) user.setEmail(request.getEmail());
         return UserMapper.toResponse(user);
     }
 
-    @Transactional
     public void deleteUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        checkPermission(user);
         user.setDeleted(true);
-        repository.save(user);
     }
 
-    @Transactional
     public UserResponse restoreUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setDeleted(false);
-        return UserMapper.toResponse(repository.save(user));
+        return UserMapper.toResponse(user);
     }
 
-    @Transactional
     public UserResponse disableUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setDisabled(true);
-        return UserMapper.toResponse(repository.save(user));
+        return UserMapper.toResponse(user);
     }
 
-    @Transactional
     public UserResponse enableUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setDisabled(false);
-        return UserMapper.toResponse(repository.save(user));
+        return UserMapper.toResponse(user);
     }
 
-    @Transactional
     public void deleteById(Integer id){
         repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         repository.deleteById(id);
