@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
+import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.entities.Bookshelf;
@@ -18,6 +19,7 @@ import ru.vladmz.books.repositories.UserRepository;
 import java.util.List;
 
 @Service
+@Transactional
 public class UserService {
 
     private final UserRepository repository;
@@ -66,6 +68,12 @@ public class UserService {
 
     public User findByEmail(String email){
         return repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+    }
+
+    public UserResponse updateEmail(UserChangeEmailRequest request, Integer userId){
+        User user = repository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        if (request.getEmail() != null) user.setEmail(request.getEmail());
+        return UserMapper.toResponse(user);
     }
 
     @Transactional

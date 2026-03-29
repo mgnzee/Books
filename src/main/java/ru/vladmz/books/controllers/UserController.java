@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
+import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserCreateRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
@@ -70,6 +71,12 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Integer id, @RequestBody UserPatchRequest request){
         UserResponse updated = service.updateUser(request, id);
+        return ResponseEntity.status(HttpStatus.OK).body(updated);
+    }
+
+    @PatchMapping("/{id}/change-email")
+    public ResponseEntity<UserResponse> updateEmail(@PathVariable Integer id, @RequestBody UserChangeEmailRequest request){
+        UserResponse updated = service.updateEmail(request, id);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 

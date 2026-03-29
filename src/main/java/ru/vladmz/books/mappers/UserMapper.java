@@ -22,7 +22,7 @@ public class UserMapper {
 
     public static User patchUser(User user, UserPatchRequest request){
         if(request.getName() != null) user.setName(request.getName());
-        if(request.getEmail() != null) user.setEmail(request.getEmail());
+        //if(request.getEmail() != null) user.setEmail(request.getEmail());
         if(request.getProfilePicture() != null) user.setProfilePicture(request.getProfilePicture());
 
         return user;
