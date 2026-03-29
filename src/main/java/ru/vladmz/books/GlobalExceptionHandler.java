@@ -2,12 +2,16 @@ package ru.vladmz.books;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.vladmz.books.exceptions.ErrorResponse;
 import ru.vladmz.books.exceptions.ResourceNotFoundException;
 import ru.vladmz.books.exceptions.UserNotAuthenticatedException;
 
+import javax.naming.AuthenticationException;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 
@@ -38,5 +42,29 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex){
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(generateResponse(ex, HttpStatus.FORBIDDEN, "Access denied"));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handleDisabledUser(DisabledException ex){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(generateResponse(ex, HttpStatus.FORBIDDEN, "Account is deleted"));
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ErrorResponse> handleLockedUser(LockedException ex){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(generateResponse(ex, HttpStatus.FORBIDDEN, "Account is disabled"));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(generateResponse(ex, HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthExc(AuthenticationException ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(generateResponse(ex, HttpStatus.UNAUTHORIZED, "Authentication failed"));
     }
 }

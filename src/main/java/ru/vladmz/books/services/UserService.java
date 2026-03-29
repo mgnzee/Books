@@ -22,6 +22,8 @@ import java.util.List;
 @Transactional
 public class UserService {
 
+    //TODO: ADD PERMISSION CHECK
+
     private final UserRepository repository;
     private final BookshelfRepository bookshelfRepository;
     private final PasswordEncoder passwordEncoder;

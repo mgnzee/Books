@@ -35,26 +35,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request){
-        try{
-            Authentication authentication = manager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
-            User user = (User) authentication.getPrincipal();
-            String token = jwtUtil.generateToken(user);
-            return ResponseEntity.ok(new JwtResponse(token));
-        }
-        //TODO: I should (PROBABLY) put these to global exception handler
-        catch (DisabledException e){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is deleted");
-        }
-        catch (LockedException e){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is disabled");
-        }
-        catch (BadCredentialsException e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        }
-        catch (AuthenticationException e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
-        }
+        Authentication authentication = manager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+        User user = (User) authentication.getPrincipal();
+        String token = jwtUtil.generateToken(user);
+        return ResponseEntity.ok(new JwtResponse(token));
     }
 }
