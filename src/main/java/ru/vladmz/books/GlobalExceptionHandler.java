@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.vladmz.books.exceptions.ErrorResponse;
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).
                 body(generateResponse(ex, HttpStatus.NOT_FOUND, "Resource not found"));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleNotValid(MethodArgumentNotValidException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Bad request"));
     }
 
     @ExceptionHandler(UserNotAuthenticatedException.class)
