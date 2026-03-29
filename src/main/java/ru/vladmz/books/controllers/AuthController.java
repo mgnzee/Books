@@ -5,10 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.JwtResponse;
 import ru.vladmz.books.DTOs.LoginRequest;
+import ru.vladmz.books.entities.User;
 import ru.vladmz.books.security.JwtUtil;
 
 @RestController
@@ -33,9 +36,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request){
         try{
-            manager.authenticate(
+            Authentication authentication = manager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
+            User user = (User) authentication.getPrincipal();
+            String token = jwtUtil.generateToken(user);
+            return ResponseEntity.ok(new JwtResponse(token));
         }
         //TODO: I should (PROBABLY) put these to global exception handler
         catch (DisabledException e){
@@ -50,7 +56,5 @@ public class AuthController {
         catch (AuthenticationException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
         }
-        String token = jwtUtil.generateToken(request.getEmail());
-        return ResponseEntity.ok(new JwtResponse(token));
     }
 }
