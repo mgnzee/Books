@@ -29,10 +29,7 @@ public class BookshelfController {
 
     @PostMapping
     public ResponseEntity<BookshelfResponse> createBookshelf(@RequestBody BookshelfRequest request){
-        User currentUser = SecurityUtils.getCurrentUser();
-        Bookshelf bookshelf = BookshelfMapper.toBookshelf(request);
-        bookshelf.setAuthor(currentUser);
-        BookshelfResponse created = service.createBookshelf(bookshelf);
+        BookshelfResponse created = service.createBookshelf(BookshelfMapper.toBookshelf(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

@@ -25,7 +25,7 @@ public class BookCommentController {
     private final CommentService service;
 
     @Autowired
-    public BookCommentController(CommentService service) {
+    public BookCommentController(CommentService service, SecurityUtils securityUtils) {
         this.service = service;
     }
 
@@ -54,12 +54,7 @@ public class BookCommentController {
 
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookId, @RequestBody @Valid CommentRequest request){
-        Comment comment = CommentMapper.toComment(request);
-        User user = SecurityUtils.getCurrentUser();
-        comment.setUser(user);
-        comment.setTargetType(TargetType.BOOK);
-        comment.setTargetId(bookId);
-        CommentResponse created = service.saveComment(comment, request.getParentCommentId(), bookId, TargetType.BOOK);
+        CommentResponse created = service.saveComment(CommentMapper.toComment(request), request.getParentCommentId(), bookId, TargetType.BOOK);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

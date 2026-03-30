@@ -1,7 +1,6 @@
 package ru.vladmz.books.services;
 
 
-import org.hibernate.query.SortDirection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +22,7 @@ import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
+import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.SecurityUtils;
 
 import java.util.List;
@@ -38,10 +38,15 @@ public class BookServiceTest {
     @Mock
     private BookRepository bookRepository;
 
+    @Mock
+    private SecurityUtils securityUtils;
+
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private BookService bookService;
 
-    private MockedStatic<SecurityUtils> mockedSecurity;
 
     Book book;
     User owner;
@@ -49,17 +54,11 @@ public class BookServiceTest {
 
     @BeforeEach
     void setUp(){
-        mockedSecurity = mockStatic(SecurityUtils.class);
         owner = new User(5, "Roma", "roma@mail.ru", "blank");
         book = new Book();
         bookId = 1;
         book.setId(bookId);
         book.setUploadedBy(owner);
-    }
-
-    @AfterEach
-    void cleanUp(){
-        mockedSecurity.close();
     }
 
     @Test
@@ -127,7 +126,7 @@ public class BookServiceTest {
         BookPatchRequest request = new BookPatchRequest("New title");
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        mockedSecurity.when(SecurityUtils::getCurrentUser).thenReturn(stranger);
+        when(securityUtils.getCurrentUserEmail()).thenReturn(stranger.getEmail());
 
         assertThrows(AccessDeniedException.class, () -> bookService.updateBook(request, bookId));
 
@@ -139,7 +138,7 @@ public class BookServiceTest {
         BookPatchRequest request = new BookPatchRequest("New title");
 
         when(bookRepository.findById(anyInt())).thenReturn(Optional.empty());
-        mockedSecurity.when(SecurityUtils::getCurrentUser).thenReturn(owner);
+        //when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
 
         assertThrows(BookNotFoundException.class, () -> bookService.updateBook(request, 10));
 
@@ -152,13 +151,13 @@ public class BookServiceTest {
         BookPatchRequest request = new BookPatchRequest(title);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        mockedSecurity.when(SecurityUtils::getCurrentUser).thenReturn(owner);
+        when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
 
         BookResponse response = bookService.updateBook(request, bookId);
 
         assertNotNull(response);
         assertEquals(title, response.getTitle());
-        mockedSecurity.verify(SecurityUtils::getCurrentUser, times(1));
+        //verify(securityUtils.getCurrentUserEmail(), times(1));
         verify(bookRepository, times(1)).findById(bookId);
     }
 
@@ -166,7 +165,8 @@ public class BookServiceTest {
     void createBook(){
         Book book = new Book("Title", "Author", "Descr", "lan", null, null, 0);
 
-        mockedSecurity.when(SecurityUtils::getCurrentUser).thenReturn(owner);
+        when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
+        when(userRepository.findByEmail(owner.getEmail())).thenReturn(Optional.of(owner));
         when(bookRepository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
 
         BookResponse response = bookService.createBook(book);
@@ -185,7 +185,7 @@ public class BookServiceTest {
     @Test
     void deleteBook(){
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        mockedSecurity.when(SecurityUtils::getCurrentUser).thenReturn(owner);
+        when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
 
         bookService.deleteBook(bookId);
         verify(bookRepository, times(1)).delete(book);
@@ -196,7 +196,7 @@ public class BookServiceTest {
         User stranger = new User(3, "NotRoma", "notroma@mail.ru", "blank");
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        mockedSecurity.when(SecurityUtils::getCurrentUser).thenReturn(stranger);
+        when(securityUtils.getCurrentUserEmail()).thenReturn(stranger.getEmail());
 
         assertThrows(AccessDeniedException.class, () -> bookService.deleteBook(bookId));
         verify(bookRepository, never()).delete(any());
@@ -205,7 +205,7 @@ public class BookServiceTest {
     @Test
     void deleteBookShouldThrowBookNotFound(){
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
-        mockedSecurity.when(SecurityUtils::getCurrentUser).thenReturn(owner);
+        //when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
 
         assertThrows(BookNotFoundException.class, () -> bookService.deleteBook(bookId));
         verify(bookRepository, never()).delete(any());

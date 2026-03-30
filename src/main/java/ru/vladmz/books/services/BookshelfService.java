@@ -9,11 +9,14 @@ import ru.vladmz.books.DTOs.bookshelf.BookshelfPatchRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Bookshelf;
+import ru.vladmz.books.entities.User;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
+import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.BookshelfMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
+import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.SecurityUtils;
 
 import java.util.List;
@@ -24,15 +27,19 @@ public class BookshelfService {
 
     private final BookshelfRepository bookshelfRepository;
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
+    private final SecurityUtils securityUtils;
 
     @Autowired
-    public BookshelfService(BookshelfRepository repository, BookRepository bookRepository) {
+    public BookshelfService(BookshelfRepository repository, BookRepository bookRepository, UserRepository userRepository, SecurityUtils securityUtils) {
         this.bookshelfRepository = repository;
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
+        this.securityUtils = securityUtils;
     }
 
     private void checkPermission(Bookshelf bookshelf){
-        if (!bookshelf.getAuthor().getId().equals(SecurityUtils.getCurrentUser().getId()))
+        if (!bookshelf.getAuthor().getEmail().equals(securityUtils.getCurrentUserEmail()))
             throw new AccessDeniedException("No rights to change bookshelf with id: " + bookshelf.getId());
     }
 
@@ -48,6 +55,10 @@ public class BookshelfService {
     }
 
     public BookshelfResponse createBookshelf(Bookshelf bookshelf) {
+        String email = securityUtils.getCurrentUserEmail();
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() ->
+                new UserNotFoundException(email));
+        bookshelf.setAuthor(currentUser);
         return new BookshelfResponse(bookshelfRepository.save(bookshelf));
     }
 

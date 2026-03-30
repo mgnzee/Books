@@ -12,12 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
-import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.exceptions.BookNotFoundException;
+import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.repositories.BookRepository;
+import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.SecurityUtils;
 
 @Service
@@ -25,14 +26,18 @@ import ru.vladmz.books.security.SecurityUtils;
 public class BookService {
 
     private final BookRepository repository;
+    private final UserRepository userRepository;
+    private final SecurityUtils securityUtils;
 
     @Autowired
-    public BookService(BookRepository repository) {
+    public BookService(BookRepository repository, SecurityUtils securityUtils, UserRepository userRepository) {
         this.repository = repository;
+        this.securityUtils = securityUtils;
+        this.userRepository = userRepository;
     }
 
     private void checkPermission(Book book){
-        if (!book.getUploadedBy().getId().equals(SecurityUtils.getCurrentUser().getId()))
+        if (!book.getUploadedBy().getEmail().equals(securityUtils.getCurrentUserEmail()))
             throw new AccessDeniedException("No rights to change book with id: " + book.getId());
     }
 
@@ -49,7 +54,9 @@ public class BookService {
     }
 
     public BookResponse createBook(Book book){
-        User currentUser = SecurityUtils.getCurrentUser();
+        String userEmail = securityUtils.getCurrentUserEmail();
+        User currentUser = userRepository.findByEmail(userEmail).orElseThrow(() ->
+                new UserNotFoundException(userEmail));
         book.setUploadedBy(currentUser);
         return new BookResponse(repository.save(book));
     }

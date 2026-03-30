@@ -27,16 +27,18 @@ public class UserService {
     private final UserRepository repository;
     private final BookshelfRepository bookshelfRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityUtils securityUtils;
 
     @Autowired
-    public UserService(UserRepository repository, BookshelfRepository bookshelfRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository repository, BookshelfRepository bookshelfRepository, PasswordEncoder passwordEncoder, SecurityUtils securityUtils) {
         this.repository = repository;
         this.bookshelfRepository = bookshelfRepository;
         this.passwordEncoder = passwordEncoder;
+        this.securityUtils = securityUtils;
     }
 
     private void checkPermission(User user){
-        if (!user.getId().equals(SecurityUtils.getCurrentUser().getId()))
+        if (!user.getEmail().equals(securityUtils.getCurrentUserEmail()))
             throw new AccessDeniedException("No rights to change profile with id: " + user.getId());
     }
 

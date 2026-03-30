@@ -14,15 +14,18 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.Commentable;
+import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
 import ru.vladmz.books.exceptions.CommentNotFoundException;
+import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
+import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.SecurityUtils;
 
 @Service
@@ -32,12 +35,16 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final BookRepository bookRepository;
     private final BookshelfRepository bookshelfRepository;
+    private final UserRepository userRepository;
+    private final SecurityUtils securityUtils;
 
     @Autowired
-    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository) {
+    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository, UserRepository userRepository, SecurityUtils securityUtils) {
         this.commentRepository = repository;
         this.bookRepository = bookRepository;
         this.bookshelfRepository = bookshelfRepository;
+        this.userRepository = userRepository;
+        this.securityUtils = securityUtils;
     }
 
     private @NonNull Commentable findTarget(@NonNull TargetType targetType, Integer targetId){
@@ -49,7 +56,7 @@ public class CommentService {
 
     private void checkPermission(@NonNull Comment comment, Integer commentId){
         if (comment.isDeleted()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment with id: " + commentId + " is already deleted.");
-        if (!comment.getUser().getId().equals(SecurityUtils.getCurrentUser().getId()))
+        if (!comment.getUser().getEmail().equals(securityUtils.getCurrentUserEmail()))
             throw new AccessDeniedException("No rights to change comment with id: " + commentId);
     }
 
@@ -75,6 +82,13 @@ public class CommentService {
     }
 
     public CommentResponse saveComment(Comment comment, Integer parentCommentId, Integer targetId, TargetType targetType){
+        String email = securityUtils.getCurrentUserEmail();
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new UserNotFoundException(email));
+        comment.setUser(user);
+        comment.setTargetType(targetType);
+        comment.setTargetId(targetId);
+
         Commentable target = findTarget(targetType, targetId);
         target.incrementCommentCount();
         if (parentCommentId != null) {
