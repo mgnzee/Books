@@ -33,10 +33,7 @@ public class BookController {
 
     @PostMapping
     public ResponseEntity<BookResponse> createBook(@RequestBody @Valid BookRequest bookRequest){
-        User currentUser = SecurityUtils.getCurrentUser();
-        Book book = BookMapper.toBook(bookRequest);
-        book.setUploadedBy(currentUser);
-        BookResponse created = service.createBook(book);
+        BookResponse created = service.createBook(BookMapper.toBook(bookRequest));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

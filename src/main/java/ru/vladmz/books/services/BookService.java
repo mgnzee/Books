@@ -13,6 +13,7 @@ import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Bookshelf;
+import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.mappers.BookMapper;
@@ -48,6 +49,8 @@ public class BookService {
     }
 
     public BookResponse createBook(Book book){
+        User currentUser = SecurityUtils.getCurrentUser();
+        book.setUploadedBy(currentUser);
         return new BookResponse(repository.save(book));
     }
 

@@ -14,6 +14,10 @@ public class BookPatchRequest {
     //    @URL
     private String coverImage;
 
+    public BookPatchRequest(String title) {
+        this.title = title;
+    }
+
     public String getTitle() {
         return title;
     }
