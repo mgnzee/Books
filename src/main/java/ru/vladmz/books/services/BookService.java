@@ -19,6 +19,8 @@ import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.UserRepository;
+import ru.vladmz.books.security.CurrentUserProvider;
+import ru.vladmz.books.security.PermissionChecker;
 import ru.vladmz.books.security.SecurityUtils;
 
 @Service
@@ -26,19 +28,14 @@ import ru.vladmz.books.security.SecurityUtils;
 public class BookService {
 
     private final BookRepository repository;
-    private final UserRepository userRepository;
-    private final SecurityUtils securityUtils;
+    private final PermissionChecker permissionChecker;
+    private final CurrentUserProvider currentUserProvider;
 
     @Autowired
-    public BookService(BookRepository repository, SecurityUtils securityUtils, UserRepository userRepository) {
+    public BookService(BookRepository repository, PermissionChecker permissionChecker, CurrentUserProvider currentUserProvider) {
         this.repository = repository;
-        this.securityUtils = securityUtils;
-        this.userRepository = userRepository;
-    }
-
-    private void checkPermission(Book book){
-        if (!book.getUploadedBy().getEmail().equals(securityUtils.getCurrentUserEmail()))
-            throw new AccessDeniedException("No rights to change book with id: " + book.getId());
+        this.permissionChecker = permissionChecker;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional(readOnly = true)
@@ -54,23 +51,21 @@ public class BookService {
     }
 
     public BookResponse createBook(Book book){
-        String userEmail = securityUtils.getCurrentUserEmail();
-        User currentUser = userRepository.findByEmail(userEmail).orElseThrow(() ->
-                new UserNotFoundException(userEmail));
+        User currentUser = currentUserProvider.get();
         book.setUploadedBy(currentUser);
         return new BookResponse(repository.save(book));
     }
 
     public BookResponse updateBook(@NonNull BookPatchRequest request, Integer id){
         Book currentBook = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
-        checkPermission(currentBook);
+        permissionChecker.checkPermission(currentBook);
         BookMapper.patchBook(currentBook, request);
         return new BookResponse(currentBook);
     }
 
     public void deleteBook(Integer id){
         Book book = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
-        checkPermission(book);
+        permissionChecker.checkPermission(book);
         repository.delete(book);
     }
 }

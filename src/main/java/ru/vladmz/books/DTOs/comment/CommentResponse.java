@@ -20,7 +20,7 @@ public class CommentResponse {
 
     public CommentResponse(Comment comment){
         this.id = comment.getId();
-        this.userId = comment.getUser().getId();
+        this.userId = comment.getOwner().getId();
         this.upvotes = comment.getUpvotes();
         this.downvotes = comment.getDownvotes();
         this.isDeleted = comment.isDeleted();
@@ -34,9 +34,9 @@ public class CommentResponse {
             this.userAvatar = null;
         } else{
             this.text = comment.getText();
-            if(comment.getUser() != null){
-                this.userName = comment.getUser().getName();
-                this.userAvatar = comment.getUser().getProfilePicture();
+            if(comment.getOwner() != null){
+                this.userName = comment.getOwner().getName();
+                this.userAvatar = comment.getOwner().getProfilePicture();
             }
         }
 

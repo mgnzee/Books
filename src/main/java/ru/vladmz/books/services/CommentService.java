@@ -30,7 +30,7 @@ import ru.vladmz.books.security.SecurityUtils;
 
 @Service
 @Transactional
-public class CommentService {
+public class CommentService{
 
     private final CommentRepository commentRepository;
     private final BookRepository bookRepository;
@@ -56,7 +56,7 @@ public class CommentService {
 
     private void checkPermission(@NonNull Comment comment, Integer commentId){
         if (comment.isDeleted()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment with id: " + commentId + " is already deleted.");
-        if (!comment.getUser().getEmail().equals(securityUtils.getCurrentUserEmail()))
+        if (!comment.getOwner().getEmail().equals(securityUtils.getCurrentUserEmail()))
             throw new AccessDeniedException("No rights to change comment with id: " + commentId);
     }
 

@@ -1,14 +1,12 @@
 package ru.vladmz.books.services;
 
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -23,7 +21,8 @@ import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.UserRepository;
-import ru.vladmz.books.security.SecurityUtils;
+import ru.vladmz.books.security.CurrentUserProvider;
+import ru.vladmz.books.security.PermissionChecker;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,14 +38,13 @@ public class BookServiceTest {
     private BookRepository bookRepository;
 
     @Mock
-    private SecurityUtils securityUtils;
+    private CurrentUserProvider provider;
 
     @Mock
-    private UserRepository userRepository;
+    private PermissionChecker permissionChecker;
 
     @InjectMocks
     private BookService bookService;
-
 
     Book book;
     User owner;
@@ -122,11 +120,11 @@ public class BookServiceTest {
 
     @Test
     void updateBookShouldThrowAccessDenied(){
-        User stranger = new User(3, "NotRoma", "notroma@mail.ru", "blank");
         BookPatchRequest request = new BookPatchRequest("New title");
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(securityUtils.getCurrentUserEmail()).thenReturn(stranger.getEmail());
+        doThrow(new AccessDeniedException("Forbidden"))
+                .when(permissionChecker).checkPermission(book);
 
         assertThrows(AccessDeniedException.class, () -> bookService.updateBook(request, bookId));
 
@@ -138,7 +136,6 @@ public class BookServiceTest {
         BookPatchRequest request = new BookPatchRequest("New title");
 
         when(bookRepository.findById(anyInt())).thenReturn(Optional.empty());
-        //when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
 
         assertThrows(BookNotFoundException.class, () -> bookService.updateBook(request, 10));
 
@@ -151,22 +148,20 @@ public class BookServiceTest {
         BookPatchRequest request = new BookPatchRequest(title);
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
 
         BookResponse response = bookService.updateBook(request, bookId);
 
         assertNotNull(response);
         assertEquals(title, response.getTitle());
-        //verify(securityUtils.getCurrentUserEmail(), times(1));
         verify(bookRepository, times(1)).findById(bookId);
+        verify(permissionChecker, times(1)).checkPermission(book);
     }
 
     @Test
     void createBook(){
         Book book = new Book("Title", "Author", "Descr", "lan", null, null, 0);
 
-        when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
-        when(userRepository.findByEmail(owner.getEmail())).thenReturn(Optional.of(owner));
+        when(provider.get()).thenReturn(owner);
         when(bookRepository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
 
         BookResponse response = bookService.createBook(book);
@@ -179,33 +174,36 @@ public class BookServiceTest {
         verify(bookRepository).save(bookCaptor.capture());
 
         Book savedBook = bookCaptor.getValue();
-        assertEquals(owner, savedBook.getUploadedBy());
+        assertEquals(owner, savedBook.getOwner());
+        verify(provider, times(1)).get();
+        verify(bookRepository, times(1)).save(book);
     }
 
     @Test
     void deleteBook(){
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
 
         bookService.deleteBook(bookId);
+
+        verify(permissionChecker, times(1)).checkPermission(book);
         verify(bookRepository, times(1)).delete(book);
     }
 
     @Test
     void deleteBookShouldThrowAccessDenied(){
-        User stranger = new User(3, "NotRoma", "notroma@mail.ru", "blank");
-
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
-        when(securityUtils.getCurrentUserEmail()).thenReturn(stranger.getEmail());
+
+        doThrow(new AccessDeniedException("Forbidden"))
+                .when(permissionChecker).checkPermission(book);
 
         assertThrows(AccessDeniedException.class, () -> bookService.deleteBook(bookId));
+
         verify(bookRepository, never()).delete(any());
     }
 
     @Test
     void deleteBookShouldThrowBookNotFound(){
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
-        //when(securityUtils.getCurrentUserEmail()).thenReturn(owner.getEmail());
 
         assertThrows(BookNotFoundException.class, () -> bookService.deleteBook(bookId));
         verify(bookRepository, never()).delete(any());

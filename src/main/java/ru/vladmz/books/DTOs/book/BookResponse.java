@@ -31,8 +31,8 @@ public class BookResponse {
         this.createdAt = book.getCreatedAt();
         this.updatedAt = book.getUpdatedAt();
         this.commentCount = book.getCommentCount();
-        this.uploadedById = book.getUploadedBy().getId();
-        this.uploadedByUsername = book.getUploadedBy().getName();
+        this.uploadedById = book.getOwner().getId();
+        this.uploadedByUsername = book.getOwner().getName();
     }
 
     public Integer getId() {
