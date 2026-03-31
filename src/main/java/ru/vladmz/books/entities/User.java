@@ -1,5 +1,6 @@
 package ru.vladmz.books.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -8,6 +9,7 @@ import org.hibernate.validator.constraints.URL;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import ru.vladmz.books.services.Ownable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,7 +17,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-public class User implements UserDetails {
+public class User implements UserDetails, Ownable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,6 +61,12 @@ public class User implements UserDetails {
         this.name = name;
         this.email = email;
         this.profilePicture = profilePicture;
+    }
+
+    @JsonIgnore
+    @Override
+    public User getOwner() {
+        return this;
     }
 
     public Integer getId() {

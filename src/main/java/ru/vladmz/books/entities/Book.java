@@ -192,4 +192,8 @@ public class Book implements Commentable, Ownable {
     public void setFileUrl(String fileUrl) {
         this.fileUrl = fileUrl;
     }
+
+    public List<Bookshelf> getBookshelves() {
+        return bookshelves;
+    }
 }

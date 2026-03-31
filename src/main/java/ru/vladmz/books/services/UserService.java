@@ -16,7 +16,7 @@ import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.UserRepository;
-import ru.vladmz.books.security.SecurityUtils;
+import ru.vladmz.books.security.PermissionChecker;
 
 import java.util.List;
 
@@ -27,19 +27,14 @@ public class UserService {
     private final UserRepository repository;
     private final BookshelfRepository bookshelfRepository;
     private final PasswordEncoder passwordEncoder;
-    private final SecurityUtils securityUtils;
+    private final PermissionChecker permissionChecker;
 
     @Autowired
-    public UserService(UserRepository repository, BookshelfRepository bookshelfRepository, PasswordEncoder passwordEncoder, SecurityUtils securityUtils) {
+    public UserService(UserRepository repository, BookshelfRepository bookshelfRepository, PasswordEncoder passwordEncoder, PermissionChecker permissionChecker) {
         this.repository = repository;
         this.bookshelfRepository = bookshelfRepository;
         this.passwordEncoder = passwordEncoder;
-        this.securityUtils = securityUtils;
-    }
-
-    private void checkPermission(User user){
-        if (!user.getEmail().equals(securityUtils.getCurrentUserEmail()))
-            throw new AccessDeniedException("No rights to change profile with id: " + user.getId());
+        this.permissionChecker = permissionChecker;
     }
 
     @Transactional(readOnly = true)
@@ -72,7 +67,7 @@ public class UserService {
 
     public UserResponse updateUser(UserPatchRequest request, Integer id){
         User currentUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        checkPermission(currentUser);
+        permissionChecker.checkPermission(currentUser);
         return UserMapper.toResponse(UserMapper.patchUser(currentUser, request));
     }
 
@@ -83,14 +78,14 @@ public class UserService {
 
     public UserResponse updateEmail(UserChangeEmailRequest request, Integer userId){
         User user = repository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        checkPermission(user);
+        permissionChecker.checkPermission(user);
         if (request.getEmail() != null) user.setEmail(request.getEmail());
         return UserMapper.toResponse(user);
     }
 
     public void deleteUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        checkPermission(user);
+        permissionChecker.checkPermission(user);
         user.setDeleted(true);
     }
 

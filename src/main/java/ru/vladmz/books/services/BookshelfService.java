@@ -17,6 +17,8 @@ import ru.vladmz.books.mappers.BookshelfMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.UserRepository;
+import ru.vladmz.books.security.CurrentUserProvider;
+import ru.vladmz.books.security.PermissionChecker;
 import ru.vladmz.books.security.SecurityUtils;
 
 import java.util.List;
@@ -27,20 +29,15 @@ public class BookshelfService {
 
     private final BookshelfRepository bookshelfRepository;
     private final BookRepository bookRepository;
-    private final UserRepository userRepository;
-    private final SecurityUtils securityUtils;
+    private final PermissionChecker permissionChecker;
+    private final CurrentUserProvider provider;
 
     @Autowired
-    public BookshelfService(BookshelfRepository repository, BookRepository bookRepository, UserRepository userRepository, SecurityUtils securityUtils) {
+    public BookshelfService(BookshelfRepository repository, BookRepository bookRepository, PermissionChecker permissionChecker, CurrentUserProvider provider) {
         this.bookshelfRepository = repository;
         this.bookRepository = bookRepository;
-        this.userRepository = userRepository;
-        this.securityUtils = securityUtils;
-    }
-
-    private void checkPermission(Bookshelf bookshelf){
-        if (!bookshelf.getAuthor().getEmail().equals(securityUtils.getCurrentUserEmail()))
-            throw new AccessDeniedException("No rights to change bookshelf with id: " + bookshelf.getId());
+        this.permissionChecker = permissionChecker;
+        this.provider = provider;
     }
 
     @Transactional(readOnly = true)
@@ -55,14 +52,12 @@ public class BookshelfService {
     }
 
     public BookshelfResponse createBookshelf(Bookshelf bookshelf) {
-        String email = securityUtils.getCurrentUserEmail();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() ->
-                new UserNotFoundException(email));
+        User currentUser = provider.get();
         bookshelf.setAuthor(currentUser);
         return new BookshelfResponse(bookshelfRepository.save(bookshelf));
     }
 
-    //TODO: FIX N+1
+    //TODO: CHECK FOR N+1
     @Transactional(readOnly = true)
     public List<BookResponse> findBooksByBookshelfId(Integer id) {
         Bookshelf bookshelf = bookshelfRepository.findById(id)
@@ -73,31 +68,32 @@ public class BookshelfService {
     public BookResponse addBookToBookshelf(Integer bookshelfId, Integer bookId){
         Bookshelf bookshelf = bookshelfRepository.findById(bookshelfId)
                 .orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
-        checkPermission(bookshelf);
+        permissionChecker.checkPermission(bookshelf);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
-        if (bookshelf.getBooks().add(book)) book.incrementDownloadCount();
+        bookshelf.addBook(book);
+        book.incrementDownloadCount();
         return new BookResponse(book);
     }
 
     public void deleteBookFromBookshelf(Integer bookshelfId, Integer bookId){
         if (!bookRepository.existsById(bookId)) throw new BookNotFoundException(bookId);
-        Bookshelf bookShelf = bookshelfRepository.findById(bookshelfId).orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
-        checkPermission(bookShelf);
+        Bookshelf bookshelf = bookshelfRepository.findById(bookshelfId).orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
+        permissionChecker.checkPermission(bookshelf);
         bookshelfRepository.removeBookFromBookshelf(bookshelfId, bookId);
     }
 
     public BookshelfResponse updateBookshelf(Integer bookshelfId, BookshelfPatchRequest bookshelf){
         Bookshelf currentBookshelf = bookshelfRepository.findById(bookshelfId)
                 .orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
-        checkPermission(currentBookshelf);
+        permissionChecker.checkPermission(currentBookshelf);
         BookshelfMapper.patchBookshelf(currentBookshelf, bookshelf);
         return BookshelfMapper.toResponse(currentBookshelf);
     }
 
     public void deleteBookshelf(Integer bookshelfId){
         Bookshelf bookshelf = bookshelfRepository.findById(bookshelfId).orElseThrow(() -> new BookshelfNotFoundException(bookshelfId));
-        checkPermission(bookshelf);
+        permissionChecker.checkPermission(bookshelf);
         bookshelfRepository.delete(bookshelf);
     }
 }

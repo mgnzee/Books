@@ -26,6 +26,8 @@ import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
 import ru.vladmz.books.repositories.UserRepository;
+import ru.vladmz.books.security.CurrentUserProvider;
+import ru.vladmz.books.security.PermissionChecker;
 import ru.vladmz.books.security.SecurityUtils;
 
 @Service
@@ -35,16 +37,16 @@ public class CommentService{
     private final CommentRepository commentRepository;
     private final BookRepository bookRepository;
     private final BookshelfRepository bookshelfRepository;
-    private final UserRepository userRepository;
-    private final SecurityUtils securityUtils;
+    private final PermissionChecker permissionChecker;
+    private final CurrentUserProvider provider;
 
     @Autowired
-    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository, UserRepository userRepository, SecurityUtils securityUtils) {
+    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository, PermissionChecker permissionChecker, CurrentUserProvider provider) {
         this.commentRepository = repository;
         this.bookRepository = bookRepository;
         this.bookshelfRepository = bookshelfRepository;
-        this.userRepository = userRepository;
-        this.securityUtils = securityUtils;
+        this.permissionChecker = permissionChecker;
+        this.provider = provider;
     }
 
     private @NonNull Commentable findTarget(@NonNull TargetType targetType, Integer targetId){
@@ -54,10 +56,8 @@ public class CommentService{
         };
     }
 
-    private void checkPermission(@NonNull Comment comment, Integer commentId){
-        if (comment.isDeleted()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment with id: " + commentId + " is already deleted.");
-        if (!comment.getOwner().getEmail().equals(securityUtils.getCurrentUserEmail()))
-            throw new AccessDeniedException("No rights to change comment with id: " + commentId);
+    private void checkDeleted(@NonNull Comment comment){
+        if (comment.isDeleted()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment with id: " + comment.getId() + " is already deleted.");
     }
 
     @Transactional(readOnly = true)
@@ -82,9 +82,7 @@ public class CommentService{
     }
 
     public CommentResponse saveComment(Comment comment, Integer parentCommentId, Integer targetId, TargetType targetType){
-        String email = securityUtils.getCurrentUserEmail();
-        User user = userRepository.findByEmail(email).orElseThrow(() ->
-                new UserNotFoundException(email));
+        User user = provider.get();
         comment.setUser(user);
         comment.setTargetType(targetType);
         comment.setTargetId(targetId);
@@ -103,22 +101,22 @@ public class CommentService{
     public CommentResponse updateComment(@NonNull Comment request, Integer commentId, Integer targetId, TargetType targetType){
         findTarget(targetType, targetId);
         Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
-        checkPermission(comment, commentId);
+        permissionChecker.checkPermission(comment);
+        checkDeleted(comment);
         comment.setText(request.getText());
         return CommentMapper.toResponse(commentRepository.save(comment));
     }
 
     public void deleteComment(Integer commentId, TargetType targetType, Integer targetId){
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(commentId));
-        checkPermission(comment, commentId);
+        permissionChecker.checkPermission(comment);
+        checkDeleted(comment);
         Commentable target = findTarget(targetType, targetId);
         target.decrementCommentCount();
         if (comment.getParentComment() != null){
             Comment parent = comment.getParentComment();
             parent.setRepliesCount(Math.max(0, parent.getRepliesCount()-1));
-            //commentRepository.save(parent);
         }
         comment.delete();
-        //commentRepository.save(comment);
     }
 }

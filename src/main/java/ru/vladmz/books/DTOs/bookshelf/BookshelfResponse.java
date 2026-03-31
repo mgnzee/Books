@@ -14,7 +14,7 @@ public class BookshelfResponse {
         this.title = bookshelf.getTitle();
         this.description = bookshelf.getDescription();
         this.cover = bookshelf.getCover();
-        this.authorId = bookshelf.getAuthor().getId();
+        this.authorId = bookshelf.getOwner().getId();
     }
 
     public Integer getId() {

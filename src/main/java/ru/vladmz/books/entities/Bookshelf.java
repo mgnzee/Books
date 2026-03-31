@@ -3,13 +3,14 @@ package ru.vladmz.books.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
+import ru.vladmz.books.services.Ownable;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
 @Table(name = "bookshelves")
-public class Bookshelf implements Commentable {
+public class Bookshelf implements Commentable, Ownable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,6 +59,7 @@ public class Bookshelf implements Commentable {
     @PreUpdate
     public void onUpdate(){ this.updatedAt = LocalDateTime.now(); }
 
+    @Override
     public Integer getId() {
         return id;
     }
@@ -94,7 +96,8 @@ public class Bookshelf implements Commentable {
         return updatedAt;
     }
 
-    public User getAuthor() {
+    @Override
+    public User getOwner() {
         return author;
     }
 
@@ -104,6 +107,18 @@ public class Bookshelf implements Commentable {
 
     public Set<Book> getBooks() {
         return books;
+    }
+
+    public Book addBook(Book book){
+        this.books.add(book);
+        book.getBookshelves().add(this);
+        return book;
+    }
+
+    public Book removeBook(Book book){
+        this.books.remove(book);
+        book.getBookshelves().remove(this);
+        return book;
     }
 
     @Override
