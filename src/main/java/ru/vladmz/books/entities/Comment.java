@@ -81,6 +81,10 @@ public class Comment implements Ownable {
         return id;
     }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     @Override
     public User getOwner() {
         return user;
