@@ -7,7 +7,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,15 +19,12 @@ import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
 import ru.vladmz.books.exceptions.CommentNotFoundException;
-import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
-import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
-import ru.vladmz.books.security.SecurityUtils;
 
 @Service
 @Transactional
@@ -56,6 +52,7 @@ public class CommentService{
         };
     }
 
+    //TODO: MOVE HTTP DETAILS AWAY FROM SERVICE BUSINESS LOGIC
     private void checkDeleted(@NonNull Comment comment){
         if (comment.isDeleted()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment with id: " + comment.getId() + " is already deleted.");
     }

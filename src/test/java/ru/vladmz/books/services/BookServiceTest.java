@@ -68,8 +68,8 @@ public class BookServiceTest {
         BookResponse response =  bookService.findById(bookId);
 
         assertNotNull(response);
-        assertEquals(book.getTitle(), response.getTitle());
-        assertEquals(book.getAuthor(), response.getAuthor());
+        assertEquals(book.getTitle(), response.title());
+        assertEquals(book.getAuthor(), response.author());
         verify(bookRepository, times(1)).findById(bookId);
     }
 
@@ -108,7 +108,7 @@ public class BookServiceTest {
         Page<BookResponse> result = bookService.findAll(0, 10, EntitySort.TIME, Sort.Direction.DESC);
 
         assertEquals(1, result.getContent().size());
-        assertEquals(1, result.getContent().get(0).getId());
+        assertEquals(1, result.getContent().get(0).id());
     }
 
     @Test
@@ -120,7 +120,7 @@ public class BookServiceTest {
 
     @Test
     void updateBookShouldThrowAccessDenied(){
-        BookPatchRequest request = new BookPatchRequest("New title");
+        BookPatchRequest request = new BookPatchRequest.Builder().title("New title").build();
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
         doThrow(new AccessDeniedException("Forbidden"))
@@ -133,7 +133,7 @@ public class BookServiceTest {
 
     @Test
     void updateBookShouldThrowBookNotFound(){
-        BookPatchRequest request = new BookPatchRequest("New title");
+        BookPatchRequest request = new BookPatchRequest.Builder().title("New title").build();
 
         when(bookRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -145,14 +145,14 @@ public class BookServiceTest {
     @Test
     void updateBook(){
         String title = "New title";
-        BookPatchRequest request = new BookPatchRequest(title);
+        BookPatchRequest request = new BookPatchRequest.Builder().title("New title").build();
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
 
         BookResponse response = bookService.updateBook(request, bookId);
 
         assertNotNull(response);
-        assertEquals(title, response.getTitle());
+        assertEquals(title, response.title());
         verify(bookRepository, times(1)).findById(bookId);
         verify(permissionChecker, times(1)).checkPermission(book);
     }
@@ -167,8 +167,8 @@ public class BookServiceTest {
         BookResponse response = bookService.createBook(book);
 
         assertNotNull(response);
-        assertEquals(book.getTitle(), response.getTitle());
-        assertEquals(book.getDescription(), response.getDescription());
+        assertEquals(book.getTitle(), response.title());
+        assertEquals(book.getDescription(), response.description());
 
         ArgumentCaptor<Book> bookCaptor = ArgumentCaptor.forClass(Book.class);
         verify(bookRepository).save(bookCaptor.capture());

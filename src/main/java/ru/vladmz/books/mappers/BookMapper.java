@@ -11,30 +11,43 @@ public class BookMapper {
     }
 
     public static BookResponse toResponse(Book book) {
-        return new BookResponse(book);
+        return new BookResponse(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getDescription(),
+                book.getLanguage(),
+                book.getFileUrl(),
+                book.getCoverImage(),
+                book.getDownloadCount(),
+                book.getCommentCount(),
+                book.getCreatedAt(),
+                book.getUpdatedAt(),
+                book.getOwner().getName(),
+                book.getOwner().getId()
+        );
     }
 
     /**NOTE: After mapping, userId should be added from securityContext
      **/
     public static Book toBook(BookRequest request) {
         Book book = new Book();
-        book.setTitle(request.getTitle());
-        book.setDescription(request.getDescription());
-        book.setDescription(request.getDescription());
-        book.setLanguage(request.getLanguage());
-        book.setFileUrl(request.getFileUrl());
-        book.setCoverImage(request.getCoverImage());
-        book.setAuthor(request.getAuthor());
+        book.setTitle(request.title());
+        book.setDescription(request.description());
+        book.setLanguage(request.language());
+        book.setFileUrl(request.fileUrl());
+        book.setCoverImage(request.coverImage());
+        book.setAuthor(request.author());
 
         return book;
     }
 
     public static Book patchBook(Book target, BookPatchRequest request){
-        if (request.getTitle() != null) target.setTitle(request.getTitle());
-        if (request.getDescription() != null) target.setDescription(request.getDescription());
-        if (request.getAuthor() != null) target.setDescription(request.getDescription());
-        if (request.getLanguage() != null) target.setLanguage(request.getLanguage());
-        if (request.getCoverImage() != null) target.setCoverImage(request.getCoverImage());
+        if (request.title() != null) target.setTitle(request.title());
+        if (request.description() != null) target.setDescription(request.description());
+        if (request.author() != null) target.setAuthor(request.author());
+        if (request.language() != null) target.setLanguage(request.language());
+        if (request.coverImage() != null) target.setCoverImage(request.coverImage());
 
         return target;
     }

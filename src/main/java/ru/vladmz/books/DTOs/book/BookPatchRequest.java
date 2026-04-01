@@ -3,39 +3,56 @@ package ru.vladmz.books.DTOs.book;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class BookPatchRequest {
-
+public record BookPatchRequest (
     @Size(min = 1, max = 100)
-    private String title;
-    private String author;
-    private String description;
+    String title,
+    String author,
+    String description,
     @Size(min = 2, max = 50)
-    private String language;
-    //    @URL
-    private String coverImage;
-
-    public BookPatchRequest(String title) {
-        this.title = title;
+    String language,
+    //@URL
+    String coverImage
+){
+    public static Builder builder(){
+        return new Builder();
     }
 
-    public String getTitle() {
-        return title;
-    }
+    public static class Builder{
+        public Builder() {}
 
-    public String getAuthor() {
-        return author;
-    }
+        private String title;
+        private String author;
+        private String description;
+        private String language;
+        private String coverImage;
 
-    public String getDescription() {
-        return description;
-    }
+        public Builder title(String title){
+            this.title = title;
+            return this;
+        }
 
-    public String getLanguage() {
-        return language;
-    }
+        public Builder author(String author){
+            this.author = author;
+            return this;
+        }
 
-    public String getCoverImage() {
-        return coverImage;
-    }
+        public Builder description(String description){
+            this.description = description;
+            return this;
+        }
 
+        public Builder language(String language){
+            this.language = language;
+            return this;
+        }
+
+        public Builder coverImage(String coverImage){
+            this.coverImage = coverImage;
+            return this;
+        }
+
+        public BookPatchRequest build(){
+            return new BookPatchRequest(title, author, description, language, coverImage);
+        }
+    }
 }

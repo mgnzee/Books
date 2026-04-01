@@ -25,6 +25,8 @@ public class CommentMapper {
         return comment;
     }
 
+
+    //TODO: REDO TO ACTUALLY PATCH AND NOT CREATE NEW
     public static Comment toComment(CommentPatchRequest request){
         Comment comment = new Comment();
         comment.setText(request.getText());

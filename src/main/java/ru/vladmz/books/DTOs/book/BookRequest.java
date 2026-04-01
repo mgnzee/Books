@@ -3,45 +3,19 @@ package ru.vladmz.books.DTOs.book;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class BookRequest {
-
+public record BookRequest (
     @NotBlank
     @Size(min = 1, max = 100)
-    private String title;
+    String title,
     @NotBlank
-    private String author;
-    private String description;
+    String author,
+    String description,
     @Size(min = 2, max = 50)
-    private String language;
+    String language,
     //TODO: NOT FORGET TO UPDATE
 //    @NotBlank
 //    @URL
-    private String fileUrl;
+    String fileUrl,
 //    @URL
-    private String coverImage;
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
-    public String getCoverImage() {
-        return coverImage;
-    }
-
-}
+    String coverImage
+){}

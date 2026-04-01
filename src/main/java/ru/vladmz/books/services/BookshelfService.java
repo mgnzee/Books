@@ -1,7 +1,6 @@
 package ru.vladmz.books.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vladmz.books.DTOs.book.BookResponse;
@@ -12,14 +11,12 @@ import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
-import ru.vladmz.books.exceptions.UserNotFoundException;
+import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.mappers.BookshelfMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
-import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
-import ru.vladmz.books.security.SecurityUtils;
 
 import java.util.List;
 
@@ -62,7 +59,7 @@ public class BookshelfService {
     public List<BookResponse> findBooksByBookshelfId(Integer id) {
         Bookshelf bookshelf = bookshelfRepository.findById(id)
                 .orElseThrow(() -> new BookshelfNotFoundException(id));
-        return bookshelf.getBooks().stream().map(BookResponse::new).toList();
+        return bookshelf.getBooks().stream().map(BookMapper::toResponse).toList();
     }
 
     public BookResponse addBookToBookshelf(Integer bookshelfId, Integer bookId){
@@ -73,7 +70,7 @@ public class BookshelfService {
                 .orElseThrow(() -> new BookNotFoundException(bookId));
         bookshelf.addBook(book);
         book.incrementDownloadCount();
-        return new BookResponse(book);
+        return BookMapper.toResponse(book);
     }
 
     public void deleteBookFromBookshelf(Integer bookshelfId, Integer bookId){
