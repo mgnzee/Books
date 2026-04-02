@@ -26,6 +26,8 @@ import ru.vladmz.books.repositories.CommentRepository;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
 
+import java.util.Optional;
+
 @Service
 @Transactional
 public class CommentService{
@@ -79,20 +81,29 @@ public class CommentService{
     }
 
     public CommentResponse saveComment(Comment comment, Integer parentCommentId, Integer targetId, TargetType targetType){
-        User user = provider.get();
-        comment.setUser(user);
-        comment.setTargetType(targetType);
-        comment.setTargetId(targetId);
-
-        Commentable target = findTarget(targetType, targetId);
-        target.incrementCommentCount();
-        if (parentCommentId != null) {
-            Comment parent = commentRepository.findById(parentCommentId).orElseThrow(() -> new CommentNotFoundException(parentCommentId));
-            comment.setParentComment(parent);
-            parent.setRepliesCount(parent.getRepliesCount()+1);
-        } else comment.setParentComment(null);
+        addPropertiesToComment(comment, targetType, targetId);
+        updateTarget(targetType, targetId);
+        if (parentCommentId != null) setParent(comment, parentCommentId);
+        else comment.setParentComment(null);
 
         return CommentMapper.toResponse(commentRepository.save(comment));
+    }
+
+    private void addPropertiesToComment(Comment comment, TargetType targetType, Integer targetId){
+        comment.setUser(provider.get());
+        comment.setTargetType(targetType);
+        comment.setTargetId(targetId);
+    }
+
+    private void setParent(Comment comment, Integer parentCommentId){
+        Comment parent = commentRepository.findById(parentCommentId).orElseThrow(() -> new CommentNotFoundException(parentCommentId));
+        comment.setParentComment(parent);
+        parent.setRepliesCount(Optional.ofNullable(parent.getRepliesCount()).orElse(0) + 1);
+    }
+
+    private void updateTarget(TargetType targetType, Integer targetId){
+        Commentable target = findTarget(targetType, targetId);
+        target.incrementCommentCount();
     }
 
     public CommentResponse updateComment(@NonNull Comment request, Integer commentId, Integer targetId, TargetType targetType){

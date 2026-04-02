@@ -3,10 +3,12 @@ package ru.vladmz.books.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
+import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.TargetType;
@@ -77,5 +79,32 @@ public class CommentServiceTest {
         when(commentRepository.findByIdAndTarget(commendId, TargetType.BOOKSHELF, 1)).thenReturn(Optional.empty());
         assertThrows(CommentNotFoundException.class, () -> commentService.findById(commendId, TargetType.BOOKSHELF, 1));
         verify(commentRepository).findByIdAndTarget(commendId, TargetType.BOOKSHELF, 1);
+    }
+
+    @Test
+    void saveComment(){
+        Comment parent = new Comment();
+        parent.setId(5);
+        Book book = new Book();
+        book.setId(1);
+        book.setCommentCount(10);
+        when(provider.get()).thenReturn(owner);
+        when(bookRepository.findById(1)).thenReturn(Optional.of(book));
+        when(commentRepository.save(comment)).thenReturn(comment);
+        when(commentRepository.findById(5)).thenReturn(Optional.of(parent));
+        commentService.saveComment(comment, parent.getId(), book.getId(), TargetType.BOOK);
+
+        ArgumentCaptor<Comment> captor = ArgumentCaptor.forClass(Comment.class);
+        verify(commentRepository).save(captor.capture());
+
+        Comment saved = captor.getValue();
+        assertEquals(TargetType.BOOK, saved.getTargetType());
+
+        assertEquals(comment.getText(), saved.getText());
+        assertEquals(owner, saved.getOwner());
+        assertNotNull(saved.getParentComment());
+        assertEquals(11, book.getCommentCount());
+
+        verify(commentRepository).save(comment);
     }
 }
