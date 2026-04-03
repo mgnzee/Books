@@ -8,9 +8,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.vladmz.books.exceptions.ErrorResponse;
-import ru.vladmz.books.exceptions.ResourceNotFoundException;
-import ru.vladmz.books.exceptions.UserNotAuthenticatedException;
+import ru.vladmz.books.exceptions.*;
 
 import javax.naming.AuthenticationException;
 import java.nio.file.AccessDeniedException;
@@ -73,5 +71,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthExc(AuthenticationException ex){
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(generateResponse(ex, HttpStatus.UNAUTHORIZED, "Authentication failed"));
+    }
+
+    @ExceptionHandler(CommentAlreadyDeleted.class)
+    public ResponseEntity<ErrorResponse> handleCommentDeleted(CommentAlreadyDeleted ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Comment is already deleted"));
+    }
+
+    @ExceptionHandler(ResourceAlreadyDeleted.class)
+    public ResponseEntity<ErrorResponse> handleResourceDeleted(ResourceAlreadyDeleted ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Resource is already deleted"));
     }
 }

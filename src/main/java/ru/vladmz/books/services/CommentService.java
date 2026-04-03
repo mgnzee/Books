@@ -17,6 +17,7 @@ import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
+import ru.vladmz.books.exceptions.CommentAlreadyDeleted;
 import ru.vladmz.books.exceptions.CommentNotFoundException;
 import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.repositories.BookRepository;
@@ -53,9 +54,8 @@ public class CommentService{
         };
     }
 
-    //TODO: MOVE HTTP DETAILS AWAY FROM SERVICE BUSINESS LOGIC
     private void checkDeleted(@NonNull Comment comment){
-        if (comment.isDeleted()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Comment with id: " + comment.getId() + " is already deleted.");
+        if (comment.isDeleted()) throw new CommentAlreadyDeleted(comment.getId());
     }
 
     @Transactional(readOnly = true)

@@ -59,6 +59,7 @@ public class BookService {
         return BookMapper.toResponse(currentBook);
     }
 
+    //TODO: ADD ALREADY DELETED CHECK
     public void deleteBook(Integer id){
         Book book = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
         permissionChecker.checkPermission(book);
