@@ -7,12 +7,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.server.ResponseStatusException;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.TargetType;
+import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.CommentNotFoundException;
+import ru.vladmz.books.exceptions.ResourceNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
@@ -41,53 +46,54 @@ public class CommentServiceTest {
     @InjectMocks
     private CommentService commentService;
 
-    Comment comment;
-    Integer commendId;
-    User owner;
+    private Comment comment;
+    private Integer commentId;
+    private User owner;
+    private Book book;
 
     @BeforeEach
     void setUp(){
         owner = new User(5, "Roma", "roma@mail.ru", "blank");
         comment = new Comment();
-        commendId = 1;
-        comment.setId(commendId);
+        commentId = 1;
+        comment.setId(commentId);
         comment.setUser(owner);
         comment.setText("Test comment");
         comment.setTargetId(1);
         comment.setTargetType(TargetType.BOOK);
+        book = new Book();
+        book.setId(1);
+        book.setCommentCount(10);
     }
 
     @Test
     void findById(){
-        when(commentRepository.findByIdAndTarget(commendId, TargetType.BOOK, 1)).thenReturn(Optional.of(comment));
-        CommentResponse response = commentService.findById(commendId, TargetType.BOOK, 1);
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.of(comment));
+        CommentResponse response = commentService.findById(commentId, TargetType.BOOK, 1);
 
         assertNotNull(response);
         assertEquals(comment.getId(), response.getId());
         assertEquals(comment.getText(), response.getText());
-        verify(commentRepository, times(commendId)).findByIdAndTarget(commendId, TargetType.BOOK, 1);
+        verify(commentRepository, times(commentId)).findByIdAndTarget(commentId, TargetType.BOOK, 1);
     }
 
     @Test
     void findByIdShouldThrowCommentNotFound(){
-        when(commentRepository.findByIdAndTarget(commendId, TargetType.BOOK, 1)).thenReturn(Optional.empty());
-        assertThrows(CommentNotFoundException.class, () -> commentService.findById(commendId, TargetType.BOOK, 1));
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.empty());
+        assertThrows(CommentNotFoundException.class, () -> commentService.findById(commentId, TargetType.BOOK, 1));
     }
 
     @Test
     void findByWithWrongTargetIdShouldThrowCommentNotFound(){
-        when(commentRepository.findByIdAndTarget(commendId, TargetType.BOOKSHELF, 1)).thenReturn(Optional.empty());
-        assertThrows(CommentNotFoundException.class, () -> commentService.findById(commendId, TargetType.BOOKSHELF, 1));
-        verify(commentRepository).findByIdAndTarget(commendId, TargetType.BOOKSHELF, 1);
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOKSHELF, 1)).thenReturn(Optional.empty());
+        assertThrows(CommentNotFoundException.class, () -> commentService.findById(commentId, TargetType.BOOKSHELF, 1));
+        verify(commentRepository).findByIdAndTarget(commentId, TargetType.BOOKSHELF, 1);
     }
 
     @Test
     void saveComment(){
         Comment parent = new Comment();
         parent.setId(5);
-        Book book = new Book();
-        book.setId(1);
-        book.setCommentCount(10);
         when(provider.get()).thenReturn(owner);
         when(bookRepository.findById(1)).thenReturn(Optional.of(book));
         when(commentRepository.save(comment)).thenReturn(comment);
@@ -106,5 +112,99 @@ public class CommentServiceTest {
         assertEquals(11, book.getCommentCount());
 
         verify(commentRepository).save(comment);
+    }
+
+    //TODO: write other save comment tests
+
+    @Test
+    void updateComment(){
+        Comment request = new Comment();
+        request.setText("Updated text");
+        when(bookRepository.findById(1)).thenReturn(Optional.of(book));
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
+        when(commentRepository.save(comment)).thenReturn(comment);
+
+        commentService.updateComment(request, commentId, 1, TargetType.BOOK);
+
+        assertEquals("Updated text", comment.getText());
+        verify(permissionChecker, times(1)).checkPermission(comment);
+        verify(commentRepository, times(1)).save(comment);
+    }
+
+    @Test
+    void updateComment_shouldThrowCommentNotFound(){
+        Comment request = new Comment();
+        request.setText("Updated text");
+        when(bookRepository.findById(1)).thenReturn(Optional.of(book));
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.empty());
+
+        assertThrows(CommentNotFoundException.class, () -> commentService.updateComment(request, commentId, 1, TargetType.BOOK));
+        verify(commentRepository, never()).save(any(Comment.class));
+    }
+
+    @Test
+    void updateComment_shouldThrowTargetNotFound(){
+        Comment request = new Comment();
+        request.setText("Updated text");
+        when(bookRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> commentService.updateComment(request, commentId, 1, TargetType.BOOK));
+        verify(commentRepository, never()).save(any(Comment.class));
+    }
+
+    @Test
+    void updateComment_shouldThrowAccessDenied(){
+        Comment request = new Comment();
+        request.setText("Updated text");
+        when(bookRepository.findById(1)).thenReturn(Optional.of(book));
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
+
+        doThrow(new AccessDeniedException("Forbidden")).when(permissionChecker).checkPermission(comment);
+
+        assertThrows(AccessDeniedException.class, () -> commentService.updateComment(request, commentId, 1, TargetType.BOOK));
+        verify(commentRepository, never()).save(any(Comment.class));
+    }
+
+    @Test
+    void updateComment_shouldThrowResponseStatusException(){
+        comment.delete();
+        Comment request = new Comment();
+        request.setText("Updated text");
+        when(bookRepository.findById(1)).thenReturn(Optional.of(book));
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
+
+        assertThrows(ResponseStatusException.class, () -> commentService.updateComment(request, commentId, 1, TargetType.BOOK));
+        verify(commentRepository, never()).save(any(Comment.class));
+    }
+
+    @Test
+    void deleteComment(){
+        when(bookRepository.findById(1)).thenReturn(Optional.of(book));
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.of(comment));
+
+        commentService.deleteComment(commentId, TargetType.BOOK, 1);
+
+        verify(permissionChecker, times(1)).checkPermission(comment);
+        assertTrue(comment.isDeleted());
+    }
+
+    @Test
+    void deleteComment_shouldThrowCommentNotFound(){
+
+    }
+
+    @Test
+    void deleteComment_shouldThrowTargetNotFound(){
+
+    }
+
+    @Test
+    void deleteComment_shouldThrowAccessDenies(){
+
+    }
+
+    @Test
+    void deleteComment_shouldThrowResponseStatusException(){
+
     }
 }

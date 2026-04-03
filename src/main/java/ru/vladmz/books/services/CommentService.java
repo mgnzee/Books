@@ -13,7 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.Commentable;
-import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
@@ -82,7 +81,7 @@ public class CommentService{
 
     public CommentResponse saveComment(Comment comment, Integer parentCommentId, Integer targetId, TargetType targetType){
         addPropertiesToComment(comment, targetType, targetId);
-        updateTarget(targetType, targetId);
+        targetIncrementCommentCount(targetType, targetId);
         if (parentCommentId != null) setParent(comment, parentCommentId);
         else comment.setParentComment(null);
 
@@ -101,11 +100,16 @@ public class CommentService{
         parent.setRepliesCount(Optional.ofNullable(parent.getRepliesCount()).orElse(0) + 1);
     }
 
-    private void updateTarget(TargetType targetType, Integer targetId){
-        Commentable target = findTarget(targetType, targetId);
-        target.incrementCommentCount();
+    private void targetIncrementCommentCount(TargetType targetType, Integer targetId){
+        findTarget(targetType, targetId).incrementCommentCount();
     }
 
+    private void targetDecrementCommentCount(TargetType targetType, Integer targetId){
+        findTarget(targetType, targetId).decrementCommentCount();
+    }
+
+
+    //TODO: MAKE SURE TARGET ID ACTUALLY MATCHES COMMENT.GETTARGETID
     public CommentResponse updateComment(@NonNull Comment request, Integer commentId, Integer targetId, TargetType targetType){
         findTarget(targetType, targetId);
         Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
@@ -116,15 +120,18 @@ public class CommentService{
     }
 
     public void deleteComment(Integer commentId, TargetType targetType, Integer targetId){
-        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(commentId));
+        Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
         permissionChecker.checkPermission(comment);
         checkDeleted(comment);
-        Commentable target = findTarget(targetType, targetId);
-        target.decrementCommentCount();
+        targetDecrementCommentCount(targetType, targetId);
+        updateParent(comment);
+        comment.delete();
+    }
+
+    private void updateParent(Comment comment){
         if (comment.getParentComment() != null){
             Comment parent = comment.getParentComment();
             parent.setRepliesCount(Math.max(0, parent.getRepliesCount()-1));
         }
-        comment.delete();
     }
 }
