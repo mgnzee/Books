@@ -2,7 +2,7 @@ package ru.vladmz.books.security;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
-import ru.vladmz.books.services.Ownable;
+import ru.vladmz.books.entities.interfaces.Ownable;
 
 @Component
 public class PermissionChecker {

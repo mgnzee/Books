@@ -2,11 +2,12 @@ package ru.vladmz.books.exceptions;
 
 public class ResourceAlreadyDeleted extends RuntimeException {
 
-    public ResourceAlreadyDeleted(String message, Throwable cause){
-        super(message, cause);
+    public ResourceAlreadyDeleted(Integer resourceId, Throwable cause){
+        super("Resource with id: " + resourceId + " is deleted", cause);
     }
 
-    public ResourceAlreadyDeleted(String message) {
-        super(message);
+    public ResourceAlreadyDeleted(Integer resourceId) {
+        super("Resource with id: " + resourceId + " is deleted");
     }
+
 }

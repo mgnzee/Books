@@ -104,7 +104,7 @@ public class UserController {
     //TODO: ADD CASCADE DELETION
     @DeleteMapping("/{id}/permanent")
     public ResponseEntity<Void> deletePermanently(@PathVariable Integer id){
-        service.deleteById(id);
+        service.hardDelete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

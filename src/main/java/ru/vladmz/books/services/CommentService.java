@@ -6,13 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
-import ru.vladmz.books.entities.Commentable;
+import ru.vladmz.books.entities.interfaces.Commentable;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.BookNotFoundException;
@@ -30,7 +28,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class CommentService{
+public class CommentService implements DeletableChecker{
 
     private final CommentRepository commentRepository;
     private final BookRepository bookRepository;
@@ -52,10 +50,6 @@ public class CommentService{
             case BOOK -> bookRepository.findById(targetId).orElseThrow(() -> new BookNotFoundException(targetId));
             case BOOKSHELF -> bookshelfRepository.findById(targetId).orElseThrow(() -> new BookshelfNotFoundException(targetId));
         };
-    }
-
-    private void checkDeleted(@NonNull Comment comment){
-        if (comment.isDeleted()) throw new CommentAlreadyDeleted(comment.getId());
     }
 
     @Transactional(readOnly = true)

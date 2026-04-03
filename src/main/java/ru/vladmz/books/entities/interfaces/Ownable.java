@@ -1,4 +1,4 @@
-package ru.vladmz.books.services;
+package ru.vladmz.books.entities.interfaces;
 
 import ru.vladmz.books.entities.User;
 

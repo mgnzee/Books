@@ -15,10 +15,7 @@ import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.TargetType;
-import ru.vladmz.books.exceptions.BookNotFoundException;
-import ru.vladmz.books.exceptions.CommentAlreadyDeleted;
-import ru.vladmz.books.exceptions.CommentNotFoundException;
-import ru.vladmz.books.exceptions.ResourceNotFoundException;
+import ru.vladmz.books.exceptions.*;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
@@ -174,7 +171,7 @@ public class CommentServiceTest {
         when(bookRepository.findById(1)).thenReturn(Optional.of(book));
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
 
-        assertThrows(CommentAlreadyDeleted.class, () -> commentService.updateComment(request, commentId, 1, TargetType.BOOK));
+        assertThrows(ResourceAlreadyDeleted.class, () -> commentService.updateComment(request, commentId, 1, TargetType.BOOK));
         verify(commentRepository, never()).save(any(Comment.class));
     }
 

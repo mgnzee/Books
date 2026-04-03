@@ -9,7 +9,8 @@ import org.hibernate.validator.constraints.URL;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.vladmz.books.services.Ownable;
+import ru.vladmz.books.entities.interfaces.Ownable;
+import ru.vladmz.books.entities.interfaces.SoftDeletable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +18,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-public class User implements UserDetails, Ownable {
+public class User implements UserDetails, Ownable, SoftDeletable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -69,6 +70,7 @@ public class User implements UserDetails, Ownable {
         return this;
     }
 
+    @Override
     public Integer getId() {
         return id;
     }
@@ -115,6 +117,7 @@ public class User implements UserDetails, Ownable {
         this.password = password;
     }
 
+    @Override
     public Boolean isDeleted() {
         return isDeleted;
     }

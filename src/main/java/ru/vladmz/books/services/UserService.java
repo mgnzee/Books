@@ -21,7 +21,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class UserService {
+public class UserService implements DeletableChecker {
 
     private final UserRepository repository;
     private final BookshelfRepository bookshelfRepository;
@@ -49,7 +49,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<BookshelfResponse> findBookshelvesOfUser(Integer id){
-        repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        checkDeleted(user);
         return bookshelfRepository.findByAuthorId(id).stream().map(BookshelfResponse::new).toList();
     }
 
@@ -67,6 +68,7 @@ public class UserService {
     public UserResponse updateUser(UserPatchRequest request, Integer id){
         User currentUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         permissionChecker.checkPermission(currentUser);
+        checkDeleted(currentUser);
         return UserMapper.toResponse(UserMapper.patchUser(currentUser, request));
     }
 
@@ -78,6 +80,7 @@ public class UserService {
     public UserResponse updateEmail(UserChangeEmailRequest request, Integer userId){
         User user = repository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         permissionChecker.checkPermission(user);
+        checkDeleted(user);
         if (request.getEmail() != null) user.setEmail(request.getEmail());
         return UserMapper.toResponse(user);
     }
@@ -85,6 +88,7 @@ public class UserService {
     public void deleteUser(Integer id){
         User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         permissionChecker.checkPermission(user);
+        checkDeleted(user);
         user.setDeleted(true);
     }
 
@@ -106,8 +110,9 @@ public class UserService {
         return UserMapper.toResponse(user);
     }
 
-    public void deleteById(Integer id){
-        repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        repository.deleteById(id);
+    public void hardDelete(Integer id){
+        User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        permissionChecker.checkPermission(user);
+        repository.delete(user);
     }
 }

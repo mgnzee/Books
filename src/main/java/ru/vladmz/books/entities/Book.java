@@ -5,7 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 import jakarta.persistence.Id;
-import ru.vladmz.books.services.Ownable;
+import ru.vladmz.books.entities.interfaces.Commentable;
+import ru.vladmz.books.entities.interfaces.Ownable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
