@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.server.ResponseStatusException;
+import ru.vladmz.books.DTOs.comment.CommentPatchRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Comment;
@@ -116,7 +117,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment(){
-        Comment request = new Comment();
+        CommentPatchRequest request = new CommentPatchRequest();
         request.setText("Updated text");
         when(bookRepository.findById(1)).thenReturn(Optional.of(book));
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
@@ -131,7 +132,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_shouldThrowCommentNotFound(){
-        Comment request = new Comment();
+        CommentPatchRequest request = new CommentPatchRequest();
         request.setText("Updated text");
         when(bookRepository.findById(1)).thenReturn(Optional.of(book));
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.empty());
@@ -142,7 +143,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_shouldThrowTargetNotFound(){
-        Comment request = new Comment();
+        CommentPatchRequest request = new CommentPatchRequest();
         request.setText("Updated text");
         when(bookRepository.findById(1)).thenReturn(Optional.empty());
 
@@ -152,7 +153,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_shouldThrowAccessDenied(){
-        Comment request = new Comment();
+        CommentPatchRequest request = new CommentPatchRequest();
         request.setText("Updated text");
         when(bookRepository.findById(1)).thenReturn(Optional.of(book));
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
@@ -166,7 +167,7 @@ public class CommentServiceTest {
     @Test
     void updateComment_shouldThrowCommentAlreadyDeleted(){
         comment.delete();
-        Comment request = new Comment();
+        CommentPatchRequest request = new CommentPatchRequest();
         request.setText("Updated text");
         when(bookRepository.findById(1)).thenReturn(Optional.of(book));
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));

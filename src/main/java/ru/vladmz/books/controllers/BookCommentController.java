@@ -11,7 +11,6 @@ import ru.vladmz.books.DTOs.comment.CommentPatchRequest;
 import ru.vladmz.books.DTOs.comment.CommentRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
-import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.mappers.CommentMapper;
@@ -54,14 +53,14 @@ public class BookCommentController {
 
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookId, @RequestBody @Valid CommentRequest request){
-        CommentResponse created = service.saveComment(CommentMapper.toComment(request), request.getParentCommentId(), bookId, TargetType.BOOK);
+        CommentResponse created = service.saveComment(CommentMapper.patchComment(request), request.getParentCommentId(), bookId, TargetType.BOOK);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PatchMapping("/{commentId}")
     public ResponseEntity<CommentResponse> changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId, @RequestBody @Valid CommentPatchRequest request){
-        Comment comment = CommentMapper.toComment(request);
-        CommentResponse updated = service.updateComment(comment, commentId, bookId, TargetType.BOOK);
+        //Comment comment = CommentMapper.patchComment(request);
+        CommentResponse updated = service.updateComment(request, commentId, bookId, TargetType.BOOK);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 
