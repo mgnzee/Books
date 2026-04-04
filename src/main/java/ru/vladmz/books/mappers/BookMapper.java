@@ -24,7 +24,8 @@ public class BookMapper {
                 book.getCreatedAt(),
                 book.getUpdatedAt(),
                 book.getOwner().getName(),
-                book.getOwner().getId()
+                book.getOwner().getId(),
+                book.getGenres()
         );
     }
 

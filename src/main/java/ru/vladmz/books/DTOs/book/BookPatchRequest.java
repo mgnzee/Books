@@ -2,6 +2,12 @@ package ru.vladmz.books.DTOs.book;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import ru.vladmz.books.DTOs.genre.GenreRequest;
+import ru.vladmz.books.entities.Genre;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public record BookPatchRequest (
     @Size(min = 1, max = 100)
@@ -11,7 +17,8 @@ public record BookPatchRequest (
     @Size(min = 2, max = 50)
     String language,
     //@URL
-    String coverImage
+    String coverImage,
+    Set<GenreRequest> genres
 ){
     public static Builder builder(){
         return new Builder();
@@ -25,6 +32,7 @@ public record BookPatchRequest (
         private String description;
         private String language;
         private String coverImage;
+        private Set<GenreRequest> genres = new HashSet<>();
 
         public Builder title(String title){
             this.title = title;
@@ -51,8 +59,18 @@ public record BookPatchRequest (
             return this;
         }
 
+        public Builder genres(Set<GenreRequest> genres){
+            this.genres.addAll(genres);
+            return this;
+        }
+
+        public Builder genre(GenreRequest genre){
+            this.genres.add(genre);
+            return this;
+        }
+
         public BookPatchRequest build(){
-            return new BookPatchRequest(title, author, description, language, coverImage);
+            return new BookPatchRequest(title, author, description, language, coverImage, genres);
         }
     }
 }

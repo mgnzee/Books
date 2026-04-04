@@ -1,8 +1,9 @@
 package ru.vladmz.books.DTOs.book;
 
-import ru.vladmz.books.entities.Book;
+import ru.vladmz.books.entities.Genre;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public record BookResponse (
     Integer id,
@@ -17,5 +18,6 @@ public record BookResponse (
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     String uploadedByUsername,
-    Integer uploadedById
+    Integer uploadedById,
+    Set<Genre> genres
 ){}

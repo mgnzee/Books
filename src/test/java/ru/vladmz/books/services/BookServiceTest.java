@@ -20,12 +20,12 @@ import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
-import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -164,7 +164,7 @@ public class BookServiceTest {
         when(provider.get()).thenReturn(owner);
         when(bookRepository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        BookResponse response = bookService.createBook(book);
+        BookResponse response = bookService.createBook(book, Set.of());
 
         assertNotNull(response);
         assertEquals(book.getTitle(), response.title());

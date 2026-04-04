@@ -10,7 +10,9 @@ import ru.vladmz.books.entities.interfaces.Ownable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "books")
@@ -63,6 +65,14 @@ public class Book implements Commentable, Ownable {
 
     @ManyToMany(mappedBy = "books")
     private List<Bookshelf> bookshelves = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "books_to_genres",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private Set<Genre> genres = new HashSet<>();
 
     public Book(){}
 
@@ -196,5 +206,21 @@ public class Book implements Commentable, Ownable {
 
     public List<Bookshelf> getBookshelves() {
         return bookshelves;
+    }
+
+    public Set<Genre> getGenres(){
+        return genres;
+    }
+
+    public Genre addGenre(Genre genre){
+        this.genres.add(genre);
+//        genre.getBooks().add(this);
+        return genre;
+    }
+
+    public Genre removeGenre(Genre genre){
+        this.genres.remove(genre);
+//        genre.getBooks().remove(this);
+        return genre;
     }
 }
