@@ -84,4 +84,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Resource is already deleted"));
     }
+
+    @ExceptionHandler(AlreadySubscribedException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadySubscribed(AlreadySubscribedException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(generateResponse(ex, HttpStatus.CONFLICT, "User already subscribed"));
+    }
+
+    @ExceptionHandler(SelfSubscriptionException.class)
+    public ResponseEntity<ErrorResponse> handleSelfSubscription(SelfSubscriptionException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(generateResponse(ex, HttpStatus.CONFLICT, "You can't subscribe to yourself"));
+    }
 }

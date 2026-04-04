@@ -13,6 +13,7 @@ import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.mappers.UserMapper;
+import ru.vladmz.books.services.FollowerService;
 import ru.vladmz.books.services.UserService;
 
 import java.net.URI;
@@ -23,10 +24,12 @@ import java.util.List;
 public class UserController {
 
     private final UserService service;
+    private final FollowerService followerService;
 
     @Autowired
-    public UserController(UserService service) {
+    public UserController(UserService service, FollowerService followerService) {
         this.service = service;
+        this.followerService = followerService;
     }
 
     //TODO: ADD JWT TO RESPONSE
@@ -106,6 +109,25 @@ public class UserController {
     @DeleteMapping("/{id}/permanent")
     public ResponseEntity<Void> deletePermanently(@PathVariable Integer id){
         service.hardDelete(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+
+    // -----FOLLOWERS----- //
+    @GetMapping("/{id}/followers")
+    public List<UserResponse> getFollowersById(@PathVariable Integer id){
+        return followerService.getFollowersByUserId(id);
+    }
+
+    @PostMapping("/{id}/followers")
+    public ResponseEntity<Void> follow(@PathVariable Integer id){
+        followerService.subscribe(id);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{id}/followers")
+    public ResponseEntity<Void> unfollow(@PathVariable Integer id){
+        followerService.unsubscribe(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
