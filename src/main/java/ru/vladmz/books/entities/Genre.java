@@ -20,6 +20,13 @@ public class Genre {
 
     public Genre(){}
 
+    /**
+    * ONLY FOR TESTS
+    **/
+    public Genre(Integer id, String title){
+        this.id = id;
+        this.title = title;
+    }
 
     public Integer getId() {
         return id;

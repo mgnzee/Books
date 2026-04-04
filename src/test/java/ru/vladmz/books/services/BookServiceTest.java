@@ -74,13 +74,13 @@ public class BookServiceTest {
     }
 
     @Test
-    void findByIdShouldThrowBookNotFound(){
+    void findById_shouldThrowBookNotFound(){
         when(bookRepository.findById(anyInt())).thenReturn(Optional.empty());
         assertThrows(BookNotFoundException.class, () -> bookService.findById(0));
     }
 
     @Test
-    void findAllShouldPassCorrectPageable(){
+    void findAll_shouldPassCorrectPageable(){
         int page = 2;
         int size = 15;
         EntitySort sort = EntitySort.TIME;
@@ -112,14 +112,14 @@ public class BookServiceTest {
     }
 
     @Test
-    void findAllShouldReturnEmptyPage(){
+    void findAll_shouldReturnEmptyPage(){
         when(bookRepository.findAll(any(Pageable.class))).thenReturn(Page.empty());
         Page<BookResponse> result = bookService.findAll(0, 10, EntitySort.TIME, Sort.Direction.DESC);
         assertTrue(result.getContent().isEmpty());
     }
 
     @Test
-    void updateBookShouldThrowAccessDenied(){
+    void updateBook_shouldThrowAccessDenied(){
         BookPatchRequest request = new BookPatchRequest.Builder().title("New title").build();
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
@@ -132,7 +132,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void updateBookShouldThrowBookNotFound(){
+    void updateBook_shouldThrowBookNotFound(){
         BookPatchRequest request = new BookPatchRequest.Builder().title("New title").build();
 
         when(bookRepository.findById(anyInt())).thenReturn(Optional.empty());
@@ -190,7 +190,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void deleteBookShouldThrowAccessDenied(){
+    void deleteBook_shouldThrowAccessDenied(){
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
 
         doThrow(new AccessDeniedException("Forbidden"))
@@ -202,7 +202,7 @@ public class BookServiceTest {
     }
 
     @Test
-    void deleteBookShouldThrowBookNotFound(){
+    void deleteBook_shouldThrowBookNotFound(){
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
 
         assertThrows(BookNotFoundException.class, () -> bookService.deleteBook(bookId));
