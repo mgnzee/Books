@@ -29,6 +29,7 @@ public class UserController {
         this.service = service;
     }
 
+    //TODO: ADD JWT TO RESPONSE
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request){
         User user = UserMapper.toUser(request);
