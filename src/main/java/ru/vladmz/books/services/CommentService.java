@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.vladmz.books.DTOs.comment.CommentPatchRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.interfaces.Commentable;
@@ -104,12 +105,13 @@ public class CommentService implements DeletableChecker{
 
 
     //TODO: MAKE SURE TARGET ID ACTUALLY MATCHES COMMENT.GETTARGETID
-    public CommentResponse updateComment(@NonNull Comment request, Integer commentId, Integer targetId, TargetType targetType){
+    public CommentResponse updateComment(@NonNull CommentPatchRequest request, Integer commentId, Integer targetId, TargetType targetType){
         findTarget(targetType, targetId);
         Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
         permissionChecker.checkPermission(comment);
         checkDeleted(comment);
-        comment.setText(request.getText());
+        //comment.setText(request.getText());
+        CommentMapper.patchComment(comment, request);
         return CommentMapper.toResponse(commentRepository.save(comment));
     }
 

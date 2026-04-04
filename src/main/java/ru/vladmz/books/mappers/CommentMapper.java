@@ -16,10 +16,8 @@ public class CommentMapper {
     /**Map CommentRequest to Comment
      * NOTE: After mapping, userId should be added from securityContext
      * **/
-    public static Comment toComment(CommentRequest request){
+    public static Comment patchComment(CommentRequest request){
         Comment comment = new Comment();
-        comment.setTargetType(request.getTargetType());
-        comment.setTargetId(request.getTargetId());
         comment.setText(request.getText());
 
         return comment;
@@ -27,9 +25,8 @@ public class CommentMapper {
 
 
     //TODO: REDO TO ACTUALLY PATCH AND NOT CREATE NEW
-    public static Comment toComment(CommentPatchRequest request){
-        Comment comment = new Comment();
-        comment.setText(request.getText());
-        return comment; //do i really need this?
+    public static Comment patchComment(Comment target, CommentPatchRequest request){
+        if(request.getText()!=null) target.setText(request.getText());
+        return target;
     }
 }

@@ -11,6 +11,9 @@ import ru.vladmz.books.repositories.UserRepository;
 
 import static org.mockito.ArgumentMatchers.any;
 
+
+
+//TODO: WRITE TESTS
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -64,7 +67,7 @@ class UserServiceTest {
 //    }
 //
 //
-//    //TODO: REWRITE (ADD BOOKSHELF TO NEW USER)
+//
 //    @Test
 //    void createUser() {
 //        User newUser = new User();
