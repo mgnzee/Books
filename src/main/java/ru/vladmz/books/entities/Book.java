@@ -16,11 +16,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "books")
-public class Book implements Commentable, Ownable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class Book extends BaseEntity implements Commentable, Ownable {
 
     @NotBlank
     @Size(min = 1, max = 100)
@@ -96,14 +92,6 @@ public class Book implements Commentable, Ownable {
     @PreUpdate
     protected void onUpdate(){
         updatedAt = LocalDateTime.now();
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getTitle() {

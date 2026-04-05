@@ -18,11 +18,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-public class User implements UserDetails, Ownable, SoftDeletable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class User extends BaseEntity implements UserDetails, Ownable, SoftDeletable {
 
     @NotBlank(message="name required")
     @Column(nullable = false)
@@ -58,7 +54,7 @@ public class User implements UserDetails, Ownable, SoftDeletable {
     public User(){}
 
     public User(Integer id, String name, String email, String profilePicture) {
-        this.id = id;
+        this.setId(id);
         this.name = name;
         this.email = email;
         this.profilePicture = profilePicture;
@@ -68,15 +64,6 @@ public class User implements UserDetails, Ownable, SoftDeletable {
     @Override
     public User getOwner() {
         return this;
-    }
-
-    @Override
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getName() {
