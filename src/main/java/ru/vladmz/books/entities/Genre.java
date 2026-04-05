@@ -6,17 +6,10 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "genres")
-public class Genre {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class Genre extends BaseEntity{
 
     @Column(updatable = false, unique = true, nullable = false)
     private String title;
-
-//    @ManyToMany(mappedBy = "genres")
-//    private Set<Book> books = new HashSet<>();
 
     public Genre(){}
 
@@ -24,31 +17,23 @@ public class Genre {
     * ONLY FOR TESTS
     **/
     public Genre(Integer id, String title){
-        this.id = id;
+        this.setId(id);
         this.title = title;
-    }
-
-    public Integer getId() {
-        return id;
     }
 
     public String getTitle() {
         return title;
     }
 
-//    public Set<Book> getBooks() {
-//        return books;
-//    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Genre genre)) return false;
-        return id != null && id.equals(genre.id);
+        return getId() != null && getId().equals(genre.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return Objects.hashCode(title);
     }
 }

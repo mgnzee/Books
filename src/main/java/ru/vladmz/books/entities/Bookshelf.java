@@ -11,11 +11,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "bookshelves")
-public class Bookshelf implements Commentable, Ownable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class Bookshelf extends BaseEntity implements Commentable, Ownable {
 
     @Size(max = 100)
     private String title;
@@ -59,11 +55,6 @@ public class Bookshelf implements Commentable, Ownable {
 
     @PreUpdate
     public void onUpdate(){ this.updatedAt = LocalDateTime.now(); }
-
-    @Override
-    public Integer getId() {
-        return id;
-    }
 
     public String getTitle() {
         return title;
@@ -125,9 +116,8 @@ public class Bookshelf implements Commentable, Ownable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Bookshelf that = (Bookshelf) o;
-        return id != null && id.equals(that.id);
+        if (!(o instanceof Bookshelf that)) return false;
+        return getId() != null && getId().equals(that.getId());
     }
 
     @Override

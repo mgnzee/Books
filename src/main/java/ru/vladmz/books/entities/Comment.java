@@ -14,11 +14,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "comments")
-public class Comment implements Ownable, SoftDeletable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class Comment extends BaseEntity implements Ownable, SoftDeletable {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -76,15 +72,6 @@ public class Comment implements Ownable, SoftDeletable {
 
     @PreUpdate
     public void onUpdate(){ this.updatedAt = LocalDateTime.now(); }
-
-    @Override
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     @Override
     public User getOwner() {
