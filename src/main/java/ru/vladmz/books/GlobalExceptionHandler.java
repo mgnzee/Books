@@ -13,9 +13,13 @@ import ru.vladmz.books.exceptions.*;
 import javax.naming.AuthenticationException;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger logger = Logger.getLogger(GlobalExceptionHandler.class.getName());
 
     private ErrorResponse generateResponse(Exception ex, HttpStatus status, String message){
         return new ErrorResponse(
@@ -95,5 +99,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSelfSubscription(SelfSubscriptionException ex){
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(generateResponse(ex, HttpStatus.CONFLICT, "You can't subscribe to yourself"));
+    }
+
+
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex){
+        logger.log(Level.SEVERE, "Runtime Exception occurred", ex);
+        ErrorResponse response = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                "An Internal Server Error occurred"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex){
+        logger.log(Level.SEVERE, "Exception occurred", ex);
+        ErrorResponse response = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                "An Internal Server Error occurred"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
     }
 }
