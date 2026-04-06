@@ -22,37 +22,34 @@ import ru.vladmz.books.repositories.CommentRepository;
 import ru.vladmz.books.repositories.PostDao;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
+import ru.vladmz.books.targetStrategies.CommentTargetStrategy;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class CommentService implements DeletableChecker{
 
     private final CommentRepository commentRepository;
-    private final BookRepository bookRepository;
-    private final BookshelfRepository bookshelfRepository;
-    private final PostDao postDao;
     private final PermissionChecker permissionChecker;
     private final CurrentUserProvider provider;
+    private final Map<TargetType, CommentTargetStrategy> strategies;
 
     @Autowired
-    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository, PostDao postDao, PermissionChecker permissionChecker, CurrentUserProvider provider) {
+    public CommentService(CommentRepository repository, PermissionChecker permissionChecker, CurrentUserProvider provider, List<CommentTargetStrategy> strategyList) {
         this.commentRepository = repository;
-        this.bookRepository = bookRepository;
-        this.bookshelfRepository = bookshelfRepository;
-        this.postDao = postDao;
         this.permissionChecker = permissionChecker;
         this.provider = provider;
+        this.strategies = strategyList.stream()
+                .collect(Collectors.toMap(CommentTargetStrategy::getType, strategy -> strategy));
     }
 
-    //TODO: REWRITE WITH STRATEGY
     private @NonNull Commentable findTarget(@NonNull TargetType targetType, Integer targetId){
-        return switch (targetType){
-            case BOOK -> bookRepository.findById(targetId).orElseThrow(() -> new BookNotFoundException(targetId));
-            case BOOKSHELF -> bookshelfRepository.findById(targetId).orElseThrow(() -> new BookshelfNotFoundException(targetId));
-            case POST -> postDao.findById(targetId).orElseThrow(() -> new PostNotFoundException(targetId));
-        };
+        CommentTargetStrategy strategy = strategies.get(targetType);
+        return strategy.findById(targetId);
     }
 
     @Transactional(readOnly = true)
