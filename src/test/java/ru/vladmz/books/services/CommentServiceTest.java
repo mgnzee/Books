@@ -198,21 +198,38 @@ public class CommentServiceTest {
 
     @Test
     void deleteComment_shouldThrowCommentNotFound(){
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 10)).thenReturn(Optional.empty());
 
+        assertThrows(CommentNotFoundException.class, () -> commentService.deleteComment(commentId, TargetType.BOOK, 10));
+        verify(commentRepository, never()).delete(any());
     }
 
     @Test
-    void deleteComment_shouldThrowTargetNotFound(){
+    void deleteComment_shouldThrowTargetNotFound() {
+        doThrow(new ResourceNotFoundException("")).when(commentRepository).findByIdAndTarget(commentId, TargetType.BOOK, 150);
 
+        assertThrows(ResourceNotFoundException.class, () -> commentService.deleteComment(commentId, TargetType.BOOK, 150));
+        verify(commentRepository, never()).delete(any());
     }
 
     @Test
-    void deleteComment_shouldThrowAccessDenies(){
+    void deleteComment_shouldThrowAccessDenied(){
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 10)).thenReturn(Optional.of(comment));
+        doThrow(new AccessDeniedException("")).when(permissionChecker).checkPermission(comment);
 
+        assertThrows(AccessDeniedException.class, () -> commentService.deleteComment(commentId, TargetType.BOOK, 10));
+
+        verify(commentRepository, never()).delete(any());
     }
 
     @Test
-    void deleteComment_shouldThrowResponseStatusException(){
+    void deleteComment_shouldThrowResourceAlreadyDeleted(){
+        comment.delete();
+        when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 10)).thenReturn(Optional.of(comment));
 
+
+        assertThrows(ResourceAlreadyDeleted.class, () -> commentService.deleteComment(commentId, TargetType.BOOK, 10));
+        verify(permissionChecker, times(1)).checkPermission(comment);
+        verify(commentRepository, never()).delete(any());
     }
 }

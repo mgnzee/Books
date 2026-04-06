@@ -49,6 +49,7 @@ public class CommentService implements DeletableChecker{
 
     private @NonNull Commentable findTarget(@NonNull TargetType targetType, Integer targetId){
         CommentTargetStrategy strategy = strategies.get(targetType);
+        if(strategy == null) throw new ResourceNotFoundException("Resource not found with type: " + targetType + " and id: " + targetId);
         return strategy.findById(targetId);
     }
 
@@ -109,12 +110,12 @@ public class CommentService implements DeletableChecker{
         Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
         permissionChecker.checkPermission(comment);
         checkDeleted(comment);
-        //comment.setText(request.getText());
         CommentMapper.patchComment(comment, request);
         return CommentMapper.toResponse(commentRepository.save(comment));
     }
 
     public void deleteComment(Integer commentId, TargetType targetType, Integer targetId){
+        findTarget(targetType, targetId);
         Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
         permissionChecker.checkPermission(comment);
         checkDeleted(comment);
