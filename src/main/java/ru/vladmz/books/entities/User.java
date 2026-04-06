@@ -51,6 +51,9 @@ public class User extends BaseEntity implements UserDetails, Ownable, SoftDeleta
     @OneToMany(mappedBy = "user")
     private List<Comment> comments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<Post> posts = new ArrayList<>();
+
     public User(){}
 
     public User(Integer id, String name, String email, String profilePicture) {
@@ -98,6 +101,11 @@ public class User extends BaseEntity implements UserDetails, Ownable, SoftDeleta
     public void addBookshelf(Bookshelf bookshelf){
         this.bookshelves.add(bookshelf);
         bookshelf.setAuthor(this);
+    }
+
+    public void addPost(Post post){
+        this.posts.add(post);
+        post.setUser(this);
     }
 
     public void setPassword(String password) {

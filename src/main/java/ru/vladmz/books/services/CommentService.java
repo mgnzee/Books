@@ -14,14 +14,12 @@ import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.interfaces.Commentable;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
-import ru.vladmz.books.exceptions.BookNotFoundException;
-import ru.vladmz.books.exceptions.BookshelfNotFoundException;
-import ru.vladmz.books.exceptions.CommentAlreadyDeleted;
-import ru.vladmz.books.exceptions.CommentNotFoundException;
+import ru.vladmz.books.exceptions.*;
 import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
+import ru.vladmz.books.repositories.PostDao;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
 
@@ -34,22 +32,26 @@ public class CommentService implements DeletableChecker{
     private final CommentRepository commentRepository;
     private final BookRepository bookRepository;
     private final BookshelfRepository bookshelfRepository;
+    private final PostDao postDao;
     private final PermissionChecker permissionChecker;
     private final CurrentUserProvider provider;
 
     @Autowired
-    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository, PermissionChecker permissionChecker, CurrentUserProvider provider) {
+    public CommentService(CommentRepository repository, BookRepository bookRepository, BookshelfRepository bookshelfRepository, PostDao postDao, PermissionChecker permissionChecker, CurrentUserProvider provider) {
         this.commentRepository = repository;
         this.bookRepository = bookRepository;
         this.bookshelfRepository = bookshelfRepository;
+        this.postDao = postDao;
         this.permissionChecker = permissionChecker;
         this.provider = provider;
     }
 
+    //TODO: REWRITE WITH STRATEGY
     private @NonNull Commentable findTarget(@NonNull TargetType targetType, Integer targetId){
         return switch (targetType){
             case BOOK -> bookRepository.findById(targetId).orElseThrow(() -> new BookNotFoundException(targetId));
             case BOOKSHELF -> bookshelfRepository.findById(targetId).orElseThrow(() -> new BookshelfNotFoundException(targetId));
+            case POST -> postDao.findById(targetId).orElseThrow(() -> new PostNotFoundException(targetId));
         };
     }
 

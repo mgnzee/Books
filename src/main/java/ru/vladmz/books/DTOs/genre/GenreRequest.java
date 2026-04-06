@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class GenreRequest {
     private Integer id;
 
-    public GenreRequest() {} // Пустой конструктор обязателен для Jackson
+    public GenreRequest() {}
 
     public GenreRequest(Integer id) {
         this.id = id;

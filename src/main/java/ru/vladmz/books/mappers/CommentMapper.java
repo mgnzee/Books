@@ -24,7 +24,6 @@ public class CommentMapper {
     }
 
 
-    //TODO: REDO TO ACTUALLY PATCH AND NOT CREATE NEW
     public static Comment patchComment(Comment target, CommentPatchRequest request){
         if(request.getText()!=null) target.setText(request.getText());
         return target;
