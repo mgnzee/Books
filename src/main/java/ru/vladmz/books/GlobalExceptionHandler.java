@@ -2,20 +2,24 @@ package ru.vladmz.books;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.vladmz.books.exceptions.*;
 
-import javax.naming.AuthenticationException;
-import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger logger = Logger.getLogger(GlobalExceptionHandler.class.getName());
 
     private ErrorResponse generateResponse(Exception ex, HttpStatus status, String message){
         return new ErrorResponse(
@@ -95,5 +99,32 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSelfSubscription(SelfSubscriptionException ex){
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(generateResponse(ex, HttpStatus.CONFLICT, "You can't subscribe to yourself"));
+    }
+
+
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex){
+        logger.log(Level.SEVERE, "Runtime Exception occurred", ex);
+        ErrorResponse response = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                "An Internal Server Error occurred"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex){
+        logger.log(Level.SEVERE, "Exception occurred", ex);
+        ErrorResponse response = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                "An Internal Server Error occurred"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
     }
 }
