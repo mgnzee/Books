@@ -16,17 +16,63 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: minio/minio
+    container_name: minio_server
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web UI
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-strongpassword}
+    volumes:
+      - ./data:/data
+    command: server /data --console-address ":9001"
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+            # 1. Ждем, пока сервер вообще станет доступен по сети
+            until (/usr/bin/mc alias set myconfig http://minio:9000 admin strongpassword) do 
+              echo 'Waiting for MinIO network...' && sleep 2; 
+            done;
+
+            # 2. Даем серверу 5 секунд 'продышаться' после старта
+            sleep 5;
+
+            # 3. Проверяем: если бакета нет, создаем его
+            if ! /usr/bin/mc ls myconfig/books > /dev/null 2>&1; then
+              /usr/bin/mc mb myconfig/books;
+              echo 'Bucket books created.';
+            else
+              echo 'Bucket books already exists.';
+            fi
+
+            # 4. Настраиваем доступ
+            /usr/bin/mc anonymous set download myconfig/books;
+            exit 0;
+            "
+
   app:
     build: .
     depends_on:
       postgres:
           condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/books}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-strongpassword}
+      S3_BUCKET: ${S3_BUCKET:-books}
     ports:
       - "8080:8080"
 
