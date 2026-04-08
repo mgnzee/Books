@@ -77,14 +77,14 @@ public class GlobalExceptionHandler {
                 .body(generateResponse(ex, HttpStatus.UNAUTHORIZED, "Authentication failed"));
     }
 
-    @ExceptionHandler(CommentAlreadyDeleted.class)
-    public ResponseEntity<ErrorResponse> handleCommentDeleted(CommentAlreadyDeleted ex){
+    @ExceptionHandler(CommentAlreadyDeletedException.class)
+    public ResponseEntity<ErrorResponse> handleCommentDeleted(CommentAlreadyDeletedException ex){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Comment is already deleted"));
     }
 
-    @ExceptionHandler(ResourceAlreadyDeleted.class)
-    public ResponseEntity<ErrorResponse> handleResourceDeleted(ResourceAlreadyDeleted ex){
+    @ExceptionHandler(ResourceAlreadyDeletedException.class)
+    public ResponseEntity<ErrorResponse> handleResourceDeleted(ResourceAlreadyDeletedException ex){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Resource is already deleted"));
     }
