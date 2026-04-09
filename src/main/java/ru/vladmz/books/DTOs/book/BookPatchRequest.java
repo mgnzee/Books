@@ -25,14 +25,14 @@ public record BookPatchRequest (
     }
 
     public static class Builder{
-        public Builder() {}
+        private Builder() {}
 
         private String title;
         private String author;
         private String description;
         private String language;
         private String coverImage;
-        private Set<GenreRequest> genres = new HashSet<>();
+        private final Set<GenreRequest> genres = new HashSet<>();
 
         public Builder title(String title){
             this.title = title;
