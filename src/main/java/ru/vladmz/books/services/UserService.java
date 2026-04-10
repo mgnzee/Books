@@ -28,42 +28,51 @@ import java.util.UUID;
 @Transactional
 public class UserService implements DeletableChecker {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final BookshelfRepository bookshelfRepository;
     private final PasswordEncoder passwordEncoder;
     private final PermissionChecker permissionChecker;
     private final StorageService storageService;
 
     @Autowired
-    public UserService(UserRepository repository, BookshelfRepository bookshelfRepository, PasswordEncoder passwordEncoder, PermissionChecker permissionChecker, StorageService storageService) {
-        this.repository = repository;
+    public UserService(UserRepository repository, BookshelfRepository bookshelfRepository,
+                       PasswordEncoder passwordEncoder, PermissionChecker permissionChecker, StorageService storageService) {
+        this.userRepository = repository;
         this.bookshelfRepository = bookshelfRepository;
         this.passwordEncoder = passwordEncoder;
         this.permissionChecker = permissionChecker;
         this.storageService = storageService;
     }
 
+    private User validateUser(Integer userId){
+        User currentUser = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        permissionChecker.checkPermission(currentUser);
+        checkDeleted(currentUser);
+
+        return currentUser;
+    }
+
     @Transactional(readOnly = true)
     public List<UserResponse> findAll(boolean isDeleted, boolean isDisabled){
-        return repository.findAllByIsDeletedAndIsDisabled(isDeleted, isDisabled)
+        return userRepository.findAllByIsDeletedAndIsDisabled(isDeleted, isDisabled)
                 .stream().map(UserMapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public UserResponse findById(Integer id){
-        return UserMapper.toResponse(repository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
+    public UserResponse findById(Integer userId){
+        return UserMapper.toResponse(userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId)));
     }
 
     @Transactional(readOnly = true)
-    public List<BookshelfResponse> findBookshelvesOfUser(Integer id){
-        User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    public List<BookshelfResponse> findBookshelvesOfUser(Integer userId){
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         checkDeleted(user);
-        return bookshelfRepository.findByAuthorId(id).stream().map(BookshelfResponse::new).toList();
+        return bookshelfRepository.findByAuthorId(userId).stream().map(BookshelfResponse::new).toList();
     }
 
     public UserResponse createUser(@NonNull User user, String rawPassword, MultipartFile file){
         user.setPassword(passwordEncoder.encode(rawPassword));
-        User newUser = repository.save(user);
+        User newUser = userRepository.save(user);
         generateDefaultBookshelf(newUser);
 
         if (file != null && !file.isEmpty()) uploadPicture(user, file);
@@ -79,17 +88,13 @@ public class UserService implements DeletableChecker {
         bookshelfRepository.save(newBookshelf);
     }
 
-    public UserResponse updateUser(UserPatchRequest request, Integer id){
-        User currentUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        permissionChecker.checkPermission(currentUser);
-        checkDeleted(currentUser);
+    public UserResponse updateUser(UserPatchRequest request, Integer userId){
+        User currentUser = validateUser(userId);
         return UserMapper.toResponse(UserMapper.patchUser(currentUser, request));
     }
 
     public UserResponse changePicture(Integer userId, MultipartFile file){
-        User currentUser = repository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        permissionChecker.checkPermission(currentUser);
-        checkDeleted(currentUser);
+        User currentUser = validateUser(userId);
 
         uploadPicture(currentUser, file);
 
@@ -115,60 +120,54 @@ public class UserService implements DeletableChecker {
     }
 
     public void deletePicture(Integer userId){
-        User currentUser = repository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        permissionChecker.checkPermission(currentUser);
-        checkDeleted(currentUser);
+        User currentUser = validateUser(userId);
 
         String currentPicture = currentUser.getProfilePicture();
         if (currentPicture == null) return;
 
         currentUser.setProfilePicture(null);
-        repository.saveAndFlush(currentUser);
+        userRepository.saveAndFlush(currentUser);
 
         storageService.delete(currentPicture);
     }
 
     @Transactional(readOnly = true)
     public User findByEmail(String email){
-        return repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 
     public UserResponse updateEmail(UserChangeEmailRequest request, Integer userId){
-        User user = repository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        permissionChecker.checkPermission(user);
-        checkDeleted(user);
+        User user = validateUser(userId);
         if (request.getEmail() != null) user.setEmail(request.getEmail());
         return UserMapper.toResponse(user);
     }
 
-    public void deleteUser(Integer id){
-        User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        permissionChecker.checkPermission(user);
-        checkDeleted(user);
+    public void deleteUser(Integer userId){
+        User user = validateUser(userId);
         user.setDeleted(true);
     }
 
-    public UserResponse restoreUser(Integer id){
-        User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    public UserResponse restoreUser(Integer userId){
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         user.setDeleted(false);
         return UserMapper.toResponse(user);
     }
 
     public UserResponse disableUser(Integer id){
-        User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setDisabled(true);
         return UserMapper.toResponse(user);
     }
 
     public UserResponse enableUser(Integer id){
-        User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setDisabled(false);
         return UserMapper.toResponse(user);
     }
 
     public void hardDelete(Integer id){
-        User user = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         permissionChecker.checkPermission(user);
-        repository.delete(user);
+        userRepository.delete(user);
     }
 }
