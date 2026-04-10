@@ -35,7 +35,6 @@ public class User extends BaseEntity implements UserDetails, Ownable, SoftDeleta
     @Column(name = "is_disabled")
     private boolean isDisabled = false;
 
-    @URL
     @Column(name = "profile_pic_url")
     private String profilePicture;
 

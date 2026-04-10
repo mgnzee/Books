@@ -11,12 +11,6 @@ public class UserPatchRequest {
     @Size(min = 1, max = 25, message = "name must be > 1 and < 25")
     private String name;
 
-//    @Email(message = "email not valid")
-//    private String email;
-
-    @URL
-    private String profilePicture;
-
     public String getName() {
         return name;
     }
@@ -25,7 +19,4 @@ public class UserPatchRequest {
         return null;
     }
 
-    public String getProfilePicture() {
-        return profilePicture;
-    }
 }

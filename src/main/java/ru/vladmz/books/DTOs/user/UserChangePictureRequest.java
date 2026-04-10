@@ -1,4 +1,5 @@
 package ru.vladmz.books.DTOs.user;
 
-public class UserChangePictureRequest {
-}
+import org.hibernate.validator.constraints.URL;
+
+public record UserChangePictureRequest(@URL String pic){}

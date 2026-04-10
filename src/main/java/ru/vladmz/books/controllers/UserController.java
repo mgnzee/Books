@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
@@ -34,9 +35,10 @@ public class UserController {
 
     //TODO: ADD JWT TO RESPONSE
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request){
+    public ResponseEntity<UserResponse> createUser(@RequestPart @Valid UserCreateRequest request,
+                                                   @RequestParam(name = "file", required = false) MultipartFile picture){
         User user = UserMapper.toUser(request);
-        UserResponse created = service.createUser(user, request.getRawPassword());
+        UserResponse created = service.createUser(user, request.getRawPassword(), picture);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -78,10 +80,17 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 
-    @PatchMapping("/{id}/change-email")
+    @PatchMapping("/{id}/email")
     public ResponseEntity<UserResponse> updateEmail(@PathVariable Integer id, @RequestBody UserChangeEmailRequest request){
         UserResponse updated = service.updateEmail(request, id);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
+    }
+
+    @PatchMapping("/{id}/profile-picture")
+    public ResponseEntity<UserResponse> changePicture(@PathVariable Integer id, @RequestParam("file") MultipartFile file){
+        if (file.isEmpty()) return ResponseEntity.badRequest().build();
+        UserResponse updated = service.changePicture(id, file);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")

@@ -15,17 +15,13 @@ public class UserCreateRequest {
     @NotBlank
     private String email;
 
-    @URL
-    private String profilePicture;
-
     @NotBlank(message = "enter password")
     @Size(min = 8, message = "password must be >= 8 characters")
     private String rawPassword;
 
-    public UserCreateRequest(String name, String email, String profilePicture, String rawPassword) {
+    public UserCreateRequest(String name, String email, String rawPassword) {
         this.name = name;
         this.email = email;
-        this.profilePicture = profilePicture;
         this.rawPassword = rawPassword;
     }
 
@@ -43,14 +39,6 @@ public class UserCreateRequest {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
     }
 
     public String getRawPassword() {
