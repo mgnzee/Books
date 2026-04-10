@@ -47,6 +47,13 @@ public class BookService {
         this.fileService = fileService;
     }
 
+    private Book validateBook(Integer bookId){
+        Book currentBook = repository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
+        permissionChecker.checkPermission(currentBook);
+
+        return currentBook;
+    }
+
     @Transactional(readOnly = true)
     public Page<BookResponse> findAll(int page, int size, @NonNull EntitySort sort, Sort.Direction direction){
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort.getFieldName()));
@@ -55,8 +62,8 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public BookResponse findById(Integer id){
-        return BookMapper.toResponse(repository.findById(id).orElseThrow(() -> new BookNotFoundException(id)));
+    public BookResponse findById(Integer bookId){
+        return BookMapper.toResponse(repository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId)));
     }
 
     public BookResponse createBook(Book book, Set<GenreRequest> genres){
@@ -74,9 +81,8 @@ public class BookService {
         foundGenres.forEach(book::addGenre);
     }
 
-    public BookResponse updateBook(@NonNull BookPatchRequest request, Integer id){
-        Book currentBook = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
-        permissionChecker.checkPermission(currentBook);
+    public BookResponse updateBook(@NonNull BookPatchRequest request, Integer bookId){
+        Book currentBook = validateBook(bookId);
         BookMapper.patchBook(currentBook, request);
         if(request.genres() != null){
             currentBook.getGenres().clear();
@@ -86,8 +92,7 @@ public class BookService {
     }
 
     public BookResponse updateCover(Integer bookId, MultipartFile file){
-        Book currentBook = repository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
-        permissionChecker.checkPermission(currentBook);
+        Book currentBook = validateBook(bookId);
 
         String path = uploadPicture(currentBook, file);
         currentBook.setCoverImage(path);
@@ -100,9 +105,8 @@ public class BookService {
         return fileService.uploadPicture(book.getId(), StorageDirectory.BOOK_COVER, file);
     }
 
-    public void deleteBook(Integer id){
-        Book book = repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
-        permissionChecker.checkPermission(book);
+    public void deleteBook(Integer bookId){
+        Book book = validateBook(bookId);
         repository.delete(book);
     }
 }
