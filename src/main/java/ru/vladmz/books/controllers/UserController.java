@@ -121,6 +121,11 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @DeleteMapping("/{id}/profile-picture")
+    public ResponseEntity<Void> deletePicture(@PathVariable Integer id){
+        service.deletePicture(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 
     // -----FOLLOWERS----- //
     @GetMapping("/{id}/followers")
