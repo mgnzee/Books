@@ -114,6 +114,20 @@ public class UserService implements DeletableChecker {
         }
     }
 
+    public void deletePicture(Integer userId){
+        User currentUser = repository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        permissionChecker.checkPermission(currentUser);
+        checkDeleted(currentUser);
+
+        String currentPicture = currentUser.getProfilePicture();
+        if (currentPicture == null) return;
+
+        currentUser.setProfilePicture(null);
+        repository.saveAndFlush(currentUser);
+
+        storageService.delete(currentPicture);
+    }
+
     @Transactional(readOnly = true)
     public User findByEmail(String email){
         return repository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));

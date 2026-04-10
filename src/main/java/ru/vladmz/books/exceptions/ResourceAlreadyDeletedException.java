@@ -10,4 +10,8 @@ public class ResourceAlreadyDeletedException extends RuntimeException {
         super("Resource with id: " + resourceId + " is deleted");
     }
 
+    public ResourceAlreadyDeletedException(String message) {
+        super(message);
+    }
+
 }
