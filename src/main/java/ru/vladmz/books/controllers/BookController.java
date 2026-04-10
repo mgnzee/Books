@@ -38,6 +38,12 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @PatchMapping("/{id}/file")
+    public ResponseEntity<BookResponse> addBookFile(@PathVariable Integer id, @RequestParam MultipartFile file){
+        BookResponse updated = service.addBookFile(id, file);
+        return ResponseEntity.ok(updated);
+    }
+
     @GetMapping
     public Page<BookResponse> selectAll(@RequestParam(defaultValue = "0", required = false) Integer page,
                                         @RequestParam(defaultValue = "10", required = false) Integer size,

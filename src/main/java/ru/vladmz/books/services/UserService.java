@@ -99,8 +99,8 @@ public class UserService implements DeletableChecker {
     }
 
     private void uploadPicture(User user, MultipartFile file){
-        fileService.deletePicture(user.getProfilePicture(), StorageDirectory.AVATAR);
-        String path = fileService.uploadPicture(user.getId(), StorageDirectory.AVATAR, file);
+        fileService.deleteResource(user.getProfilePicture(), StorageDirectory.AVATAR);
+        String path = fileService.uploadResource(user.getId(), StorageDirectory.AVATAR, file);
         user.setProfilePicture(path);
     }
 
@@ -113,7 +113,7 @@ public class UserService implements DeletableChecker {
         currentUser.setProfilePicture(null);
         userRepository.saveAndFlush(currentUser);
 
-        fileService.deletePicture(currentPicture, StorageDirectory.AVATAR);
+        fileService.deleteResource(currentPicture, StorageDirectory.AVATAR);
     }
 
     @Transactional(readOnly = true)
@@ -153,7 +153,7 @@ public class UserService implements DeletableChecker {
     public void hardDelete(Integer id){
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         permissionChecker.checkPermission(user);
-        fileService.deletePicture(user.getProfilePicture(), StorageDirectory.AVATAR);
+        fileService.deleteResource(user.getProfilePicture(), StorageDirectory.AVATAR);
         userRepository.delete(user);
     }
 }

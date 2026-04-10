@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class BookService {
+public class BookService { //TODO: ADD FILE TYPE VALIDATION
 
     private final BookRepository repository;
     private final PermissionChecker permissionChecker;
@@ -81,6 +81,21 @@ public class BookService {
         foundGenres.forEach(book::addGenre);
     }
 
+    public BookResponse addBookFile(Integer bookId, MultipartFile file){
+        Book currentBook = validateBook(bookId);
+
+        if (currentBook.getFileUrl() != null) throw new IllegalStateException("Book file already exists and cannot be changed");
+
+        String path = uploadFile(currentBook, file);
+        currentBook.setFileUrl(path);
+
+        return BookMapper.toResponse(currentBook);
+    }
+
+    private String uploadFile(Book book, MultipartFile file){
+        return fileService.uploadResource(book.getId(), StorageDirectory.BOOK_FILE, file);
+    }
+
     public BookResponse updateBook(@NonNull BookPatchRequest request, Integer bookId){
         Book currentBook = validateBook(bookId);
         BookMapper.patchBook(currentBook, request);
@@ -101,8 +116,8 @@ public class BookService {
     }
 
     private String uploadPicture(Book book, MultipartFile file){
-        fileService.deletePicture(book.getCoverImage(), StorageDirectory.BOOK_COVER);
-        return fileService.uploadPicture(book.getId(), StorageDirectory.BOOK_COVER, file);
+        fileService.deleteResource(book.getCoverImage(), StorageDirectory.BOOK_COVER);
+        return fileService.uploadResource(book.getId(), StorageDirectory.BOOK_COVER, file);
     }
 
     public void deletePicture(Integer bookId){
@@ -114,11 +129,15 @@ public class BookService {
         book.setCoverImage(null);
         repository.saveAndFlush(book);
 
-        fileService.deletePicture(currentPicture, StorageDirectory.BOOK_COVER);
+        fileService.deleteResource(currentPicture, StorageDirectory.BOOK_COVER);
     }
 
     public void deleteBook(Integer bookId){
         Book book = validateBook(bookId);
+
+        if (book.getCoverImage() != null) fileService.deleteResource(book.getCoverImage(), StorageDirectory.BOOK_COVER);
+        if (book.getFileUrl() != null) fileService.deleteResource(book.getFileUrl(), StorageDirectory.BOOK_FILE);
+
         repository.delete(book);
     }
 }

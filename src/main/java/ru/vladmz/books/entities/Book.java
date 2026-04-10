@@ -34,8 +34,6 @@ public class Book extends BaseEntity implements Commentable, Ownable {
     //TODO: ADD RATINGS
     //private Double rating;
 
-    @URL
-    //@NotBlank
     @Column(name = "file_url")
     private String fileUrl;
 

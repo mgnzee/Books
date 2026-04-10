@@ -18,7 +18,7 @@ public class FileService {
         this.storageService = storageService;
     }
 
-    public String uploadPicture(Integer id, StorageDirectory directory, MultipartFile file){
+    public String uploadResource(Integer id, StorageDirectory directory, MultipartFile file){
         String fileName = generateFileName(directory, id, file.getOriginalFilename());
         try {
             storageService.upload(file.getInputStream(), directory.getBucket(), fileName, file.getContentType());
@@ -32,7 +32,7 @@ public class FileService {
         return directory.getPath() + "/" + id + "_" + UUID.randomUUID() + "_" + originalName;
     }
 
-    public void deletePicture(String filename, StorageDirectory directory){
+    public void deleteResource(String filename, StorageDirectory directory){
         if (filename != null) storageService.delete(filename, directory.getBucket());
     }
 }
