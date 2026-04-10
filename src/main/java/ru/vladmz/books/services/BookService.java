@@ -105,6 +105,18 @@ public class BookService {
         return fileService.uploadPicture(book.getId(), StorageDirectory.BOOK_COVER, file);
     }
 
+    public void deletePicture(Integer bookId){
+        Book book = validateBook(bookId);
+
+        String currentPicture = book.getCoverImage();
+        if (currentPicture == null) return;
+
+        book.setCoverImage(null);
+        repository.saveAndFlush(book);
+
+        fileService.deletePicture(currentPicture, StorageDirectory.BOOK_COVER);
+    }
+
     public void deleteBook(Integer bookId){
         Book book = validateBook(bookId);
         repository.delete(book);

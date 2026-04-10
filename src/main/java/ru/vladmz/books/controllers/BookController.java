@@ -64,6 +64,12 @@ public class BookController {
         return ResponseEntity.ok(updated);
     }
 
+    @DeleteMapping("/{id}/cover-image")
+    public ResponseEntity<Void> deleteCover(@PathVariable Integer id){
+        service.deletePicture(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Integer id){
         service.deleteBook(id);
