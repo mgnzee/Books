@@ -18,8 +18,8 @@ public class FileService {
         this.storageService = storageService;
     }
 
-    public String uploadPicture(Integer ownerId, StorageDirectory directory, MultipartFile file){
-        String fileName = generateFileName(directory, ownerId, file.getOriginalFilename());
+    public String uploadPicture(Integer id, StorageDirectory directory, MultipartFile file){
+        String fileName = generateFileName(directory, id, file.getOriginalFilename());
         try {
             storageService.upload(file.getInputStream(), directory.getBucket(), fileName, file.getContentType());
             return fileName;

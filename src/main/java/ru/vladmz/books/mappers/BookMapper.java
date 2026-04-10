@@ -48,7 +48,6 @@ public class BookMapper {
         if (request.description() != null) target.setDescription(request.description());
         if (request.author() != null) target.setAuthor(request.author());
         if (request.language() != null) target.setLanguage(request.language());
-        if (request.coverImage() != null) target.setCoverImage(request.coverImage());
 
         return target;
     }

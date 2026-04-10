@@ -20,7 +20,6 @@ public record BookRequest (
 //    @NotBlank
 //    @URL
     String fileUrl,
-//    @URL
     String coverImage,
     Set<GenreRequest> genres
 ){}

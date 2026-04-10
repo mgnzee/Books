@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.DTOs.genre.GenreRequest;
@@ -15,6 +16,7 @@ import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Genre;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
+import ru.vladmz.books.etc.StorageDirectory;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.repositories.BookRepository;
@@ -34,13 +36,15 @@ public class BookService {
     private final PermissionChecker permissionChecker;
     private final CurrentUserProvider currentUserProvider;
     private final GenreRepository genreRepository;
+    private final FileService fileService;
 
     @Autowired
-    public BookService(BookRepository repository, PermissionChecker permissionChecker, CurrentUserProvider currentUserProvider, GenreRepository genreRepository) {
+    public BookService(BookRepository repository, PermissionChecker permissionChecker, CurrentUserProvider currentUserProvider, GenreRepository genreRepository, FileService fileService) {
         this.repository = repository;
         this.permissionChecker = permissionChecker;
         this.currentUserProvider = currentUserProvider;
         this.genreRepository = genreRepository;
+        this.fileService = fileService;
     }
 
     @Transactional(readOnly = true)
@@ -79,6 +83,21 @@ public class BookService {
             if(!request.genres().isEmpty()) addGenresToBook(currentBook, request.genres());
         }
         return BookMapper.toResponse(currentBook);
+    }
+
+    public BookResponse updateCover(Integer bookId, MultipartFile file){
+        Book currentBook = repository.findById(bookId).orElseThrow(() -> new BookNotFoundException(bookId));
+        permissionChecker.checkPermission(currentBook);
+
+        String path = uploadPicture(currentBook, file);
+        currentBook.setCoverImage(path);
+
+        return BookMapper.toResponse(currentBook);
+    }
+
+    private String uploadPicture(Book book, MultipartFile file){
+        fileService.deletePicture(book.getCoverImage(), StorageDirectory.BOOK_COVER);
+        return fileService.uploadPicture(book.getId(), StorageDirectory.BOOK_COVER, file);
     }
 
     public void deleteBook(Integer id){

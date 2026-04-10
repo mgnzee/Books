@@ -39,7 +39,6 @@ public class Book extends BaseEntity implements Commentable, Ownable {
     @Column(name = "file_url")
     private String fileUrl;
 
-    @URL
     @Column(name = "cover_image")
     private String coverImage;
 

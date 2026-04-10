@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
@@ -54,6 +55,12 @@ public class BookController {
     @PatchMapping("/{id}")
     public ResponseEntity<BookResponse> updateBook(@PathVariable Integer id, @RequestBody @Valid BookPatchRequest book){
         BookResponse updated = service.updateBook(book, id);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PatchMapping("/{id}/cover-image")
+    public ResponseEntity<BookResponse> updateCover(@PathVariable Integer id, @RequestParam("file") MultipartFile file){
+        BookResponse updated = service.updateCover(id, file);
         return ResponseEntity.ok(updated);
     }
 

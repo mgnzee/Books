@@ -16,8 +16,6 @@ public record BookPatchRequest (
     String description,
     @Size(min = 2, max = 50)
     String language,
-    //@URL
-    String coverImage,
     Set<GenreRequest> genres
 ){
     public static Builder builder(){
@@ -31,7 +29,6 @@ public record BookPatchRequest (
         private String author;
         private String description;
         private String language;
-        private String coverImage;
         private final Set<GenreRequest> genres = new HashSet<>();
 
         public Builder title(String title){
@@ -54,11 +51,6 @@ public record BookPatchRequest (
             return this;
         }
 
-        public Builder coverImage(String coverImage){
-            this.coverImage = coverImage;
-            return this;
-        }
-
         public Builder genres(Set<GenreRequest> genres){
             this.genres.addAll(genres);
             return this;
@@ -70,7 +62,7 @@ public record BookPatchRequest (
         }
 
         public BookPatchRequest build(){
-            return new BookPatchRequest(title, author, description, language, coverImage, genres);
+            return new BookPatchRequest(title, author, description, language, genres);
         }
     }
 }
