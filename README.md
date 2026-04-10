@@ -8,6 +8,7 @@ Tech Stack
 - PostgreSQL (Spring Data JPA)
 - OpenAPI (Swagger UI)
 - Docker Compose
+- S3 (MinIO)
 
 **Building and running:**
 
