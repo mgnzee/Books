@@ -12,17 +12,14 @@ import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
-import ru.vladmz.books.exceptions.FileStorageException;
+import ru.vladmz.books.etc.StorageDirectory;
 import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.PermissionChecker;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Transactional
@@ -32,16 +29,16 @@ public class UserService implements DeletableChecker {
     private final BookshelfRepository bookshelfRepository;
     private final PasswordEncoder passwordEncoder;
     private final PermissionChecker permissionChecker;
-    private final StorageService storageService;
+    private final FileService fileService;
 
     @Autowired
     public UserService(UserRepository repository, BookshelfRepository bookshelfRepository,
-                       PasswordEncoder passwordEncoder, PermissionChecker permissionChecker, StorageService storageService) {
+                       PasswordEncoder passwordEncoder, PermissionChecker permissionChecker, FileService fileService) {
         this.userRepository = repository;
         this.bookshelfRepository = bookshelfRepository;
         this.passwordEncoder = passwordEncoder;
         this.permissionChecker = permissionChecker;
-        this.storageService = storageService;
+        this.fileService = fileService;
     }
 
     private User validateUser(Integer userId){
@@ -102,21 +99,9 @@ public class UserService implements DeletableChecker {
     }
 
     private void uploadPicture(User user, MultipartFile file){
-        String fileName = generateFileName(user.getId(), file.getOriginalFilename());
-        uploadPictureToStorage(file, fileName);
-        user.setProfilePicture(fileName);
-    }
-
-    private String generateFileName(Integer userId, String originalName){
-        return "avatars/" + userId + "_" + UUID.randomUUID() + "_" + originalName;
-    }
-
-    private void uploadPictureToStorage(MultipartFile file, String fileName){
-        try {
-            storageService.upload(file.getInputStream(), fileName, file.getContentType());
-        } catch (IOException | S3Exception ex) {
-            throw new FileStorageException("Could not upload avatar", "avatars" ,fileName, ex);
-        }
+        fileService.deletePicture(user.getProfilePicture(), StorageDirectory.AVATAR);
+        String path = fileService.uploadPicture(user.getId(), StorageDirectory.AVATAR, file);
+        user.setProfilePicture(path);
     }
 
     public void deletePicture(Integer userId){
@@ -128,7 +113,7 @@ public class UserService implements DeletableChecker {
         currentUser.setProfilePicture(null);
         userRepository.saveAndFlush(currentUser);
 
-        storageService.delete(currentPicture);
+        fileService.deletePicture(currentPicture, StorageDirectory.AVATAR);
     }
 
     @Transactional(readOnly = true)
@@ -168,6 +153,7 @@ public class UserService implements DeletableChecker {
     public void hardDelete(Integer id){
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         permissionChecker.checkPermission(user);
+        fileService.deletePicture(user.getProfilePicture(), StorageDirectory.AVATAR);
         userRepository.delete(user);
     }
 }
