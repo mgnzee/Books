@@ -23,8 +23,13 @@ services:
       - "9000:9000" # S3 API
       - "9001:9001" # Web UI
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-strongpassword}
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-admin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-strongpassword}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./data:/data
     command: server /data --console-address ":9001"
@@ -32,27 +37,21 @@ services:
   minio-init:
     image: minio/mc
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-strongpassword}
     entrypoint: >
       /bin/sh -c "
-            # 1. Ждем, пока сервер вообще станет доступен по сети
-            until (/usr/bin/mc alias set myconfig http://minio:9000 admin strongpassword) do 
-              echo 'Waiting for MinIO network...' && sleep 2; 
-            done;
+            /usr/bin/mc alias set myconfig http://minio:9000 $S3_ACCESS_KEY $S3_SECRET_KEY;
+            
+            /usr/bin/mc mb --ignore-existing myconfig/library;
+            /usr/bin/mc mb --ignore-existing myconfig/public-assets;
 
-            # 2. Даем серверу 5 секунд 'продышаться' после старта
-            sleep 5;
-
-            # 3. Проверяем: если бакета нет, создаем его
-            if ! /usr/bin/mc ls myconfig/books > /dev/null 2>&1; then
-              /usr/bin/mc mb myconfig/books;
-              echo 'Bucket books created.';
-            else
-              echo 'Bucket books already exists.';
-            fi
-
-            # 4. Настраиваем доступ
-            /usr/bin/mc anonymous set download myconfig/books;
+            /usr/bin/mc anonymous set download myconfig/public-assets;
+      
+            echo 'MinIO init complete';
             exit 0;
             "
 
