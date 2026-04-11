@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.etc.StorageDirectory;
 import ru.vladmz.books.exceptions.FileStorageException;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.util.UUID;
 
@@ -22,7 +21,7 @@ public class FileService {
         try {
             storageService.upload(file.inputStream(), directory.getBucket(), fileName, file.contentType());
             return fileName;
-        } catch (S3Exception ex) {
+        } catch (Exception ex) {
             throw new FileStorageException("Could not upload image to " + directory.getPath(), directory.getPath() ,fileName, ex);
         }
     }
