@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserCreateRequest;
@@ -17,6 +18,8 @@ import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.services.FollowerService;
 import ru.vladmz.books.services.UserService;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -35,10 +38,9 @@ public class UserController {
 
     //TODO: ADD JWT TO RESPONSE
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestPart @Valid UserCreateRequest request,
-                                                   @RequestParam(name = "file", required = false) MultipartFile picture){
+    public ResponseEntity<UserResponse> createUser(@RequestPart @Valid UserCreateRequest request) throws IOException {
         User user = UserMapper.toUser(request);
-        UserResponse created = service.createUser(user, request.getRawPassword(), picture);
+        UserResponse created = service.createUser(user, request.getRawPassword());
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -87,9 +89,10 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/profile-picture")
-    public ResponseEntity<UserResponse> changePicture(@PathVariable Integer id, @RequestParam("file") MultipartFile file){
+    public ResponseEntity<UserResponse> changePicture(@PathVariable Integer id, @RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) return ResponseEntity.badRequest().build();
-        UserResponse updated = service.changePicture(id, file);
+        var request = new FileUploadRequest(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
+        UserResponse updated = service.changePicture(id, request);
         return ResponseEntity.ok(updated);
     }
 

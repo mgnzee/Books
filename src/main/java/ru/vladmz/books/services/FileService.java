@@ -1,12 +1,12 @@
 package ru.vladmz.books.services;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.etc.StorageDirectory;
 import ru.vladmz.books.exceptions.FileStorageException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 
 @Service
@@ -18,12 +18,12 @@ public class FileService {
         this.storageService = storageService;
     }
 
-    public String uploadResource(Integer id, StorageDirectory directory, MultipartFile file){
-        String fileName = generateFileName(directory, id, file.getOriginalFilename());
+    public String uploadResource(Integer id, StorageDirectory directory, FileUploadRequest file){
+        String fileName = generateFileName(directory, id, file.originalFileName());
         try {
-            storageService.upload(file.getInputStream(), directory.getBucket(), fileName, file.getContentType());
+            storageService.upload(file.inputStream(), directory.getBucket(), fileName, file.contentType());
             return fileName;
-        } catch (IOException | S3Exception ex) {
+        } catch (S3Exception ex) {
             throw new FileStorageException("Could not upload image to " + directory.getPath(), directory.getPath() ,fileName, ex);
         }
     }

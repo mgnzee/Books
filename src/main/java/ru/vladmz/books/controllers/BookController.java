@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
@@ -19,6 +20,7 @@ import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookService;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -39,8 +41,9 @@ public class BookController {
     }
 
     @PatchMapping("/{id}/file")
-    public ResponseEntity<BookResponse> addBookFile(@PathVariable Integer id, @RequestParam MultipartFile file){
-        BookResponse updated = service.addBookFile(id, file);
+    public ResponseEntity<BookResponse> addBookFile(@PathVariable Integer id, @RequestParam MultipartFile file) throws IOException {
+        var request = new FileUploadRequest(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
+        BookResponse updated = service.addBookFile(id, request);
         return ResponseEntity.ok(updated);
     }
 
@@ -65,8 +68,9 @@ public class BookController {
     }
 
     @PatchMapping("/{id}/cover-image")
-    public ResponseEntity<BookResponse> updateCover(@PathVariable Integer id, @RequestParam("file") MultipartFile file){
-        BookResponse updated = service.updateCover(id, file);
+    public ResponseEntity<BookResponse> updateCover(@PathVariable Integer id, @RequestParam("file") MultipartFile file) throws IOException {
+        var request = new FileUploadRequest(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
+        BookResponse updated = service.updateCover(id, request);
         return ResponseEntity.ok(updated);
     }
 

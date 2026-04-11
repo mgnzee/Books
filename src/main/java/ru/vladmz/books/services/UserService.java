@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
@@ -67,12 +67,10 @@ public class UserService implements DeletableChecker {
         return bookshelfRepository.findByAuthorId(userId).stream().map(BookshelfResponse::new).toList();
     }
 
-    public UserResponse createUser(@NonNull User user, String rawPassword, MultipartFile file){
+    public UserResponse createUser(@NonNull User user, String rawPassword){
         user.setPassword(passwordEncoder.encode(rawPassword));
         User newUser = userRepository.save(user);
         generateDefaultBookshelf(newUser);
-
-        if (file != null && !file.isEmpty()) uploadPicture(user, file);
 
         return UserMapper.toResponse(newUser);
     }
@@ -90,7 +88,7 @@ public class UserService implements DeletableChecker {
         return UserMapper.toResponse(UserMapper.patchUser(currentUser, request));
     }
 
-    public UserResponse changePicture(Integer userId, MultipartFile file){
+    public UserResponse changePicture(Integer userId, FileUploadRequest file){
         User currentUser = validateUser(userId);
 
         uploadPicture(currentUser, file);
@@ -98,7 +96,7 @@ public class UserService implements DeletableChecker {
         return UserMapper.toResponse(currentUser);
     }
 
-    private void uploadPicture(User user, MultipartFile file){
+    private void uploadPicture(User user, FileUploadRequest file){
         fileService.deleteResource(user.getProfilePicture(), StorageDirectory.AVATAR);
         String path = fileService.uploadResource(user.getId(), StorageDirectory.AVATAR, file);
         user.setProfilePicture(path);

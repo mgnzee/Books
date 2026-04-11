@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.DTOs.genre.GenreRequest;
@@ -81,7 +81,7 @@ public class BookService { //TODO: ADD FILE TYPE VALIDATION
         foundGenres.forEach(book::addGenre);
     }
 
-    public BookResponse addBookFile(Integer bookId, MultipartFile file){
+    public BookResponse addBookFile(Integer bookId, FileUploadRequest file){
         Book currentBook = validateBook(bookId);
 
         if (currentBook.getFileUrl() != null) throw new IllegalStateException("Book file already exists and cannot be changed");
@@ -92,7 +92,7 @@ public class BookService { //TODO: ADD FILE TYPE VALIDATION
         return BookMapper.toResponse(currentBook);
     }
 
-    private String uploadFile(Book book, MultipartFile file){
+    private String uploadFile(Book book, FileUploadRequest file){
         return fileService.uploadResource(book.getId(), StorageDirectory.BOOK_FILE, file);
     }
 
@@ -106,7 +106,7 @@ public class BookService { //TODO: ADD FILE TYPE VALIDATION
         return BookMapper.toResponse(currentBook);
     }
 
-    public BookResponse updateCover(Integer bookId, MultipartFile file){
+    public BookResponse updateCover(Integer bookId, FileUploadRequest file){
         Book currentBook = validateBook(bookId);
 
         String path = uploadPicture(currentBook, file);
@@ -115,7 +115,7 @@ public class BookService { //TODO: ADD FILE TYPE VALIDATION
         return BookMapper.toResponse(currentBook);
     }
 
-    private String uploadPicture(Book book, MultipartFile file){
+    private String uploadPicture(Book book, FileUploadRequest file){
         fileService.deleteResource(book.getCoverImage(), StorageDirectory.BOOK_COVER);
         return fileService.uploadResource(book.getId(), StorageDirectory.BOOK_COVER, file);
     }
