@@ -3,7 +3,6 @@ package ru.vladmz.books.controllers;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,15 +12,11 @@ import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
-import ru.vladmz.books.entities.Book;
-import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.mappers.BookMapper;
-import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookService;
 
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/books")

@@ -1,8 +1,8 @@
 package ru.vladmz.books.mappers;
 
 import ru.vladmz.books.DTOs.user.UserCreateRequest;
-import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
+import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.entities.User;
 
 public class UserMapper {

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.vladmz.books.DTOs.comment.CommentPatchRequest;
 import ru.vladmz.books.DTOs.comment.CommentRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
-import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.mappers.CommentMapper;

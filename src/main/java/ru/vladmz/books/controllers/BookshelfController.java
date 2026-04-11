@@ -8,10 +8,7 @@ import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfPatchRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
-import ru.vladmz.books.entities.Bookshelf;
-import ru.vladmz.books.entities.User;
 import ru.vladmz.books.mappers.BookshelfMapper;
-import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookshelfService;
 
 import java.util.List;

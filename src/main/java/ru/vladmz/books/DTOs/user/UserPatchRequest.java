@@ -1,8 +1,6 @@
 package ru.vladmz.books.DTOs.user;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
 
 
 //TODO: MOVE CHANGING EMAIL SOMEWHERE ELSE

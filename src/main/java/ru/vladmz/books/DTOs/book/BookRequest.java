@@ -3,7 +3,6 @@ package ru.vladmz.books.DTOs.book;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import ru.vladmz.books.DTOs.genre.GenreRequest;
-import ru.vladmz.books.entities.Genre;
 
 import java.util.Set;
 

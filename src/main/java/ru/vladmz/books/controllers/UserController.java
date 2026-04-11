@@ -11,14 +11,13 @@ import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserCreateRequest;
-import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
+import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.services.FollowerService;
 import ru.vladmz.books.services.UserService;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;

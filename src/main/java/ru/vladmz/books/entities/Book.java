@@ -3,8 +3,6 @@ package ru.vladmz.books.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
-import jakarta.persistence.Id;
 import ru.vladmz.books.entities.interfaces.Commentable;
 import ru.vladmz.books.entities.interfaces.Ownable;
 

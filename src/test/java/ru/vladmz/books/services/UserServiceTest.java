@@ -9,8 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.repositories.UserRepository;
 
-import static org.mockito.ArgumentMatchers.any;
-
 
 
 //TODO: WRITE TESTS
