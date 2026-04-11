@@ -8,14 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
-import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
-import ru.vladmz.books.entities.Bookshelf;
+import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.StorageDirectory;
 import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.UserMapper;
-import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.PermissionChecker;
 
@@ -26,19 +24,19 @@ import java.util.List;
 public class UserService implements DeletableChecker {
 
     private final UserRepository userRepository;
-    private final BookshelfRepository bookshelfRepository;
     private final PasswordEncoder passwordEncoder;
     private final PermissionChecker permissionChecker;
     private final FileService fileService;
+    private final BookshelfService bookshelfService;
 
     @Autowired
-    public UserService(UserRepository repository, BookshelfRepository bookshelfRepository,
-                       PasswordEncoder passwordEncoder, PermissionChecker permissionChecker, FileService fileService) {
+    public UserService(UserRepository repository,PasswordEncoder passwordEncoder, PermissionChecker permissionChecker,
+                       FileService fileService, BookshelfService bookshelfService) {
         this.userRepository = repository;
-        this.bookshelfRepository = bookshelfRepository;
         this.passwordEncoder = passwordEncoder;
         this.permissionChecker = permissionChecker;
         this.fileService = fileService;
+        this.bookshelfService = bookshelfService;
     }
 
     private User validateUser(Integer userId){
@@ -64,23 +62,15 @@ public class UserService implements DeletableChecker {
     public List<BookshelfResponse> findBookshelvesOfUser(Integer userId){
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         checkDeleted(user);
-        return bookshelfRepository.findByAuthorId(userId).stream().map(BookshelfResponse::new).toList();
+        return bookshelfService.findByUserId(userId);
     }
 
     public UserResponse createUser(@NonNull User user, String rawPassword){
         user.setPassword(passwordEncoder.encode(rawPassword));
         User newUser = userRepository.save(user);
-        generateDefaultBookshelf(newUser);
+        bookshelfService.generateDefaultBookshelf(newUser);
 
         return UserMapper.toResponse(newUser);
-    }
-
-    private void generateDefaultBookshelf(User user){
-        Bookshelf newBookshelf = new Bookshelf();
-        newBookshelf.setTitle("My Library");
-        newBookshelf.setDescription("This is default bookshelf created automatically");
-        newBookshelf.setAuthor(user);
-        bookshelfRepository.save(newBookshelf);
     }
 
     public UserResponse updateUser(UserPatchRequest request, Integer userId){
