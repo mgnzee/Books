@@ -4,6 +4,9 @@ import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
+import ru.vladmz.books.entities.User;
+
+import java.util.Optional;
 
 public class BookMapper {
 
@@ -11,6 +14,14 @@ public class BookMapper {
     }
 
     public static BookResponse toResponse(Book book) {
+        String ownerName = Optional.ofNullable(book.getOwner())
+                .map(User::getName)
+                .orElse(null);
+
+        Integer ownerId = Optional.ofNullable(book.getOwner())
+                .map(User::getId)
+                .orElse(null);
+
         return new BookResponse(
                 book.getId(),
                 book.getTitle(),
@@ -23,8 +34,8 @@ public class BookMapper {
                 book.getCommentCount(),
                 book.getCreatedAt(),
                 book.getUpdatedAt(),
-                book.getOwner().getName(),
-                book.getOwner().getId(),
+                ownerName,
+                ownerId,
                 book.getGenres()
         );
     }

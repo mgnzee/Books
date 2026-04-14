@@ -9,17 +9,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.etc.StorageDirectory;
 import ru.vladmz.books.exceptions.ResourceAlreadyDeletedException;
 import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.PermissionChecker;
 
+import java.io.ByteArrayInputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -299,5 +302,42 @@ class UserServiceTest {
         assertThrows(AccessDeniedException.class, () -> service.hardDelete(user.getId()));
         verify(userRepository, never()).delete(any());
         verify(fileService, never()).deleteResource(any(), any());
+    }
+
+    @Test
+    void changePicture(){
+        String oldPath = "old_avatar.png";
+        String newPath = "new_avatar.png";
+        user.setProfilePicture(oldPath);
+
+        var fileRequest = new FileUploadRequest(
+                new ByteArrayInputStream("contents".getBytes()),
+                "avatar.png",
+                "image/png"
+        );
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(fileService.uploadResource(user.getId(), StorageDirectory.AVATAR, fileRequest)).thenReturn(newPath);
+
+        UserResponse response = service.changePicture(user.getId(), fileRequest);
+
+        assertEquals(newPath, user.getProfilePicture());
+        assertEquals(newPath, response.getProfilePicture());
+        verify(fileService).deleteResource(oldPath, StorageDirectory.AVATAR);
+        verify(fileService).uploadResource(user.getId(), StorageDirectory.AVATAR, fileRequest);
+    }
+
+    @Test
+    void deletePicture(){
+        String path = "avatar.png";
+        user.setProfilePicture(path);
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        service.deletePicture(user.getId());
+
+        assertNull(user.getProfilePicture());
+        verify(fileService).deleteResource(path, StorageDirectory.AVATAR);
+        verify(userRepository, times(1)).saveAndFlush(user);
     }
 }
