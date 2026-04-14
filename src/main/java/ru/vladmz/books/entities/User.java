@@ -1,11 +1,13 @@
 package ru.vladmz.books.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,7 +37,6 @@ public class User extends BaseEntity implements UserDetails, Ownable, SoftDeleta
     @Column(name = "is_disabled")
     private boolean isDisabled = false;
 
-    @URL
     @Column(name = "profile_pic_url")
     private String profilePicture;
 

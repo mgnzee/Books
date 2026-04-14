@@ -7,12 +7,14 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.vladmz.books.exceptions.*;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -77,14 +79,14 @@ public class GlobalExceptionHandler {
                 .body(generateResponse(ex, HttpStatus.UNAUTHORIZED, "Authentication failed"));
     }
 
-    @ExceptionHandler(CommentAlreadyDeleted.class)
-    public ResponseEntity<ErrorResponse> handleCommentDeleted(CommentAlreadyDeleted ex){
+    @ExceptionHandler(CommentAlreadyDeletedException.class)
+    public ResponseEntity<ErrorResponse> handleCommentDeleted(CommentAlreadyDeletedException ex){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Comment is already deleted"));
     }
 
-    @ExceptionHandler(ResourceAlreadyDeleted.class)
-    public ResponseEntity<ErrorResponse> handleResourceDeleted(ResourceAlreadyDeleted ex){
+    @ExceptionHandler(ResourceAlreadyDeletedException.class)
+    public ResponseEntity<ErrorResponse> handleResourceDeleted(ResourceAlreadyDeletedException ex){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Resource is already deleted"));
     }
@@ -99,6 +101,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSelfSubscription(SelfSubscriptionException ex){
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(generateResponse(ex, HttpStatus.CONFLICT, "You can't subscribe to yourself"));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex){
+        StringBuilder message = new StringBuilder();
+        message.append("Method ").append(ex.getMethod()).append(" not allowed here. ").append("Allowed methods: ");
+        Optional.ofNullable(ex.getSupportedHttpMethods())
+                .ifPresent( methods -> methods.forEach(m -> message.append(m).append(" ")));
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(generateResponse(ex, HttpStatus.METHOD_NOT_ALLOWED, message.toString()));
     }
 
 

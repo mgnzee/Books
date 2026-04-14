@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import ru.vladmz.books.entities.interfaces.Ownable;
 import ru.vladmz.books.entities.interfaces.SoftDeletable;
 import ru.vladmz.books.etc.TargetType;
-import ru.vladmz.books.entities.interfaces.Ownable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

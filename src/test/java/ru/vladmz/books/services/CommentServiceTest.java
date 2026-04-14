@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,16 +13,16 @@ import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.TargetType;
-import ru.vladmz.books.exceptions.*;
+import ru.vladmz.books.exceptions.CommentNotFoundException;
+import ru.vladmz.books.exceptions.ResourceAlreadyDeletedException;
+import ru.vladmz.books.exceptions.ResourceNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
-import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
 import ru.vladmz.books.targetStrategies.CommentTargetStrategy;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -181,7 +180,7 @@ public class CommentServiceTest {
         when(bookStrategy.findById(1)).thenReturn(book);
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
 
-        assertThrows(ResourceAlreadyDeleted.class, () -> commentService.updateComment(request, commentId, 1, TargetType.BOOK));
+        assertThrows(ResourceAlreadyDeletedException.class, () -> commentService.updateComment(request, commentId, 1, TargetType.BOOK));
         verify(commentRepository, never()).save(any(Comment.class));
     }
 
@@ -228,7 +227,7 @@ public class CommentServiceTest {
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 10)).thenReturn(Optional.of(comment));
 
 
-        assertThrows(ResourceAlreadyDeleted.class, () -> commentService.deleteComment(commentId, TargetType.BOOK, 10));
+        assertThrows(ResourceAlreadyDeletedException.class, () -> commentService.deleteComment(commentId, TargetType.BOOK, 10));
         verify(permissionChecker, times(1)).checkPermission(comment);
         verify(commentRepository, never()).delete(any());
     }

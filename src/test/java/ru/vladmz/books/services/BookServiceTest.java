@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -119,7 +118,7 @@ public class BookServiceTest {
 
     @Test
     void updateBook_shouldThrowAccessDenied(){
-        BookPatchRequest request = new BookPatchRequest.Builder().title("New title").build();
+        BookPatchRequest request = BookPatchRequest.builder().title("New title").build();
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
         doThrow(new AccessDeniedException("Forbidden"))
@@ -132,7 +131,7 @@ public class BookServiceTest {
 
     @Test
     void updateBook_shouldThrowBookNotFound(){
-        BookPatchRequest request = new BookPatchRequest.Builder().title("New title").build();
+        BookPatchRequest request = BookPatchRequest.builder().title("New title").build();
 
         when(bookRepository.findById(anyInt())).thenReturn(Optional.empty());
 
@@ -144,7 +143,7 @@ public class BookServiceTest {
     @Test
     void updateBook(){
         String title = "New title";
-        BookPatchRequest request = new BookPatchRequest.Builder().title("New title").build();
+        BookPatchRequest request = BookPatchRequest.builder().title("New title").build();
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
 

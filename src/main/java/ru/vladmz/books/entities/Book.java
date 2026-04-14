@@ -3,8 +3,6 @@ package ru.vladmz.books.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
-import jakarta.persistence.Id;
 import ru.vladmz.books.entities.interfaces.Commentable;
 import ru.vladmz.books.entities.interfaces.Ownable;
 
@@ -34,12 +32,9 @@ public class Book extends BaseEntity implements Commentable, Ownable {
     //TODO: ADD RATINGS
     //private Double rating;
 
-    @URL
-    //@NotBlank
     @Column(name = "file_url")
     private String fileUrl;
 
-    @URL
     @Column(name = "cover_image")
     private String coverImage;
 

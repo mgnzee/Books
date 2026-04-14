@@ -1,7 +1,5 @@
 package ru.vladmz.books.DTOs.genre;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class GenreRequest {
     private Integer id;
 

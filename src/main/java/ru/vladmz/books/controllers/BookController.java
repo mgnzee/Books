@@ -3,22 +3,20 @@ package ru.vladmz.books.controllers;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
-import ru.vladmz.books.entities.Book;
-import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.mappers.BookMapper;
-import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.BookService;
 
-import java.util.List;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/books")
@@ -35,6 +33,13 @@ public class BookController {
     public ResponseEntity<BookResponse> createBook(@RequestBody @Valid BookRequest bookRequest){
         BookResponse created = service.createBook(BookMapper.toBook(bookRequest), bookRequest.genres());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PatchMapping("/{id}/file")
+    public ResponseEntity<BookResponse> addBookFile(@PathVariable Integer id, @RequestParam MultipartFile file) throws IOException {
+        var request = new FileUploadRequest(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
+        BookResponse updated = service.addBookFile(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping
@@ -55,6 +60,19 @@ public class BookController {
     public ResponseEntity<BookResponse> updateBook(@PathVariable Integer id, @RequestBody @Valid BookPatchRequest book){
         BookResponse updated = service.updateBook(book, id);
         return ResponseEntity.ok(updated);
+    }
+
+    @PatchMapping("/{id}/cover-image")
+    public ResponseEntity<BookResponse> updateCover(@PathVariable Integer id, @RequestParam("file") MultipartFile file) throws IOException {
+        var request = new FileUploadRequest(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
+        BookResponse updated = service.updateCover(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}/cover-image")
+    public ResponseEntity<Void> deleteCover(@PathVariable Integer id){
+        service.deletePicture(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @DeleteMapping("/{id}")

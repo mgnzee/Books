@@ -7,7 +7,8 @@ import ru.vladmz.books.entities.interfaces.Commentable;
 import ru.vladmz.books.entities.interfaces.Ownable;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "bookshelves")

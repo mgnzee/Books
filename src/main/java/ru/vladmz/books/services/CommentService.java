@@ -14,12 +14,10 @@ import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.interfaces.Commentable;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
-import ru.vladmz.books.exceptions.*;
+import ru.vladmz.books.exceptions.CommentNotFoundException;
+import ru.vladmz.books.exceptions.ResourceNotFoundException;
 import ru.vladmz.books.mappers.CommentMapper;
-import ru.vladmz.books.repositories.BookRepository;
-import ru.vladmz.books.repositories.BookshelfRepository;
 import ru.vladmz.books.repositories.CommentRepository;
-import ru.vladmz.books.repositories.PostDao;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
 import ru.vladmz.books.targetStrategies.CommentTargetStrategy;
@@ -53,6 +51,7 @@ public class CommentService implements DeletableChecker{
         return strategy.findById(targetId);
     }
 
+    //TODO: REFACTOR ARGS
     @Transactional(readOnly = true)
     public Page<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType targetType, int page, int size, @NonNull EntitySort sortBy, Sort.Direction direction){
         findTarget(targetType, targetId);
@@ -74,9 +73,11 @@ public class CommentService implements DeletableChecker{
                 new CommentNotFoundException(commentId)));
     }
 
+    //TODO: REFACTOR ARGS
     public CommentResponse saveComment(Comment comment, Integer parentCommentId, Integer targetId, TargetType targetType){
         addPropertiesToComment(comment, targetType, targetId);
         targetIncrementCommentCount(targetType, targetId);
+        //TODO: I PROBABLY SHOULD CHANGE THIS TO DIFFERENT FUNCTIONS
         if (parentCommentId != null) setParent(comment, parentCommentId);
         else comment.setParentComment(null);
 
@@ -92,6 +93,7 @@ public class CommentService implements DeletableChecker{
     private void setParent(Comment comment, Integer parentCommentId){
         Comment parent = commentRepository.findById(parentCommentId).orElseThrow(() -> new CommentNotFoundException(parentCommentId));
         comment.setParentComment(parent);
+        //TODO: CERTAINLY CHANGE
         parent.setRepliesCount(Optional.ofNullable(parent.getRepliesCount()).orElse(0) + 1);
     }
 
@@ -105,6 +107,7 @@ public class CommentService implements DeletableChecker{
 
 
     //TODO: MAKE SURE TARGET ID ACTUALLY MATCHES COMMENT.GETTARGETID
+    //TODO: REFACTOR ARGS
     public CommentResponse updateComment(@NonNull CommentPatchRequest request, Integer commentId, Integer targetId, TargetType targetType){
         findTarget(targetType, targetId);
         Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));

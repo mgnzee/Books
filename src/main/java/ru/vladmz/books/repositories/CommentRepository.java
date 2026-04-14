@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.etc.TargetType;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository

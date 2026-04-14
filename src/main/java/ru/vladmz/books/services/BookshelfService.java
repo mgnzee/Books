@@ -54,6 +54,14 @@ public class BookshelfService {
         return new BookshelfResponse(bookshelfRepository.save(bookshelf));
     }
 
+    public void generateDefaultBookshelf(User user){
+        Bookshelf newBookshelf = new Bookshelf();
+        newBookshelf.setTitle("My Library");
+        newBookshelf.setDescription("This is default bookshelf created automatically");
+        newBookshelf.setAuthor(user);
+        bookshelfRepository.save(newBookshelf);
+    }
+
     //TODO: CHECK FOR N+1
     @Transactional(readOnly = true)
     public List<BookResponse> findBooksByBookshelfId(Integer id) {
@@ -71,6 +79,10 @@ public class BookshelfService {
         bookshelf.addBook(book);
         book.incrementDownloadCount();
         return BookMapper.toResponse(book);
+    }
+
+    public List<BookshelfResponse> findByUserId(Integer userId){
+        return bookshelfRepository.findByAuthorId(userId).stream().map(BookshelfResponse::new).toList();
     }
 
     public void deleteBookFromBookshelf(Integer bookshelfId, Integer bookId){

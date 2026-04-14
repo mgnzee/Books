@@ -1,7 +1,6 @@
 package ru.vladmz.books.DTOs.comment;
 
 import jakarta.validation.constraints.NotBlank;
-import ru.vladmz.books.etc.TargetType;
 
 public class CommentRequest {
 
