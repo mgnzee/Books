@@ -47,6 +47,7 @@ public class UserService implements DeletableChecker {
         return currentUser;
     }
 
+    //TODO: I SHOULD PROBABLY REFACTOR THIS TO NOT USE BOOLEAN FLAGS AS ARGS (uncle Bob very angry)
     @Transactional(readOnly = true)
     public List<UserResponse> findAll(boolean isDeleted, boolean isDisabled){
         return userRepository.findAllByIsDeletedAndIsDisabled(isDeleted, isDisabled)
