@@ -43,16 +43,16 @@ public class BookController {
     }
 
     @GetMapping
-    public Page<BookResponse> selectAll(@RequestParam(defaultValue = "0", required = false) Integer page,
-                                        @RequestParam(defaultValue = "10", required = false) Integer size,
-                                        @RequestParam(defaultValue = "TIME") EntitySort sort,
-                                        @RequestParam(defaultValue = "DESC") Sort.Direction direction)
+    public Page<BookResponse> findAll(@RequestParam(defaultValue = "0", required = false) Integer page,
+                                      @RequestParam(defaultValue = "10", required = false) Integer size,
+                                      @RequestParam(defaultValue = "TIME") EntitySort sort,
+                                      @RequestParam(defaultValue = "DESC") Sort.Direction direction)
     {
         return service.findAll(page, size, sort, direction);
     }
 
     @GetMapping("/{id}")
-    public BookResponse selectById(@PathVariable Integer id){
+    public BookResponse findById(@PathVariable Integer id){
         return service.findById(id);
     }
 
