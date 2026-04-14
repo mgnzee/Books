@@ -20,7 +20,7 @@ public class UserMapper {
 
 
     public static User patchUser(User user, UserPatchRequest request){
-        if(request.getName() != null) user.setName(request.getName());
+        if(request.name() != null) user.setName(request.name());
 
         return user;
     }
