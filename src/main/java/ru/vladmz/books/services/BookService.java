@@ -76,7 +76,7 @@ public class BookService { //TODO: ADD FILE TYPE VALIDATION
 
     private void addGenresToBook(Book book, Set<GenreRequest> genres){
         if(genres == null || genres.isEmpty()) return;
-        Set<Integer> genreIds = genres.stream().map(GenreRequest::getId).collect(Collectors.toSet());
+        Set<Integer> genreIds = genres.stream().map(GenreRequest::id).collect(Collectors.toSet());
         List<Genre> foundGenres = genreRepository.findAllById(genreIds);
         foundGenres.forEach(book::addGenre);
     }
