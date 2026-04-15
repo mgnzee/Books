@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.vladmz.books.DTOs.FileUploadRequest;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
-import ru.vladmz.books.DTOs.book.BookRequest;
+import ru.vladmz.books.DTOs.book.BookCreateRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.mappers.BookMapper;
@@ -30,7 +30,7 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookResponse> createBook(@RequestBody @Valid BookRequest bookRequest){
+    public ResponseEntity<BookResponse> createBook(@RequestBody @Valid BookCreateRequest bookRequest){
         BookResponse created = service.createBook(BookMapper.toBook(bookRequest), bookRequest.genres());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
