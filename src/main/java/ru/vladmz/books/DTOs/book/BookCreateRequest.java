@@ -6,7 +6,7 @@ import ru.vladmz.books.DTOs.genre.GenreRequest;
 
 import java.util.Set;
 
-public record BookRequest (
+public record BookCreateRequest(
     @NotBlank
     @Size(min = 1, max = 100)
     String title,
@@ -15,10 +15,5 @@ public record BookRequest (
     String description,
     @Size(min = 2, max = 50)
     String language,
-    //TODO: NOT FORGET TO UPDATE
-//    @NotBlank
-//    @URL
-    String fileUrl,
-    String coverImage,
     Set<GenreRequest> genres
 ){}

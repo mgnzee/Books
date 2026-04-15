@@ -11,9 +11,12 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpClientErrorException;
 import ru.vladmz.books.exceptions.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,9 +41,19 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleNotValid(MethodArgumentNotValidException ex){
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Bad request"));
+    public ResponseEntity<ErrorResponse> handleBadRequest(MethodArgumentNotValidException ex){
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+        StringBuilder sb = new StringBuilder();
+        errors.forEach((key, value) -> sb.append(key).append(" : ").append(value).append("; "));
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Bad request",
+                        sb.toString()
+                )
+        );
     }
 
     @ExceptionHandler(UserNotAuthenticatedException.class)

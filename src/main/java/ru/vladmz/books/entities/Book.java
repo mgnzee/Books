@@ -7,10 +7,7 @@ import ru.vladmz.books.entities.interfaces.Commentable;
 import ru.vladmz.books.entities.interfaces.Ownable;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "books")
@@ -205,5 +202,17 @@ public class Book extends BaseEntity implements Commentable, Ownable {
         this.genres.remove(genre);
 //        genre.getBooks().remove(this);
         return genre;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Book book = (Book) o;
+        return Objects.equals(title, book.title) && Objects.equals(author, book.author) && Objects.equals(description, book.description) && Objects.equals(language, book.language) && Objects.equals(fileUrl, book.fileUrl) && Objects.equals(coverImage, book.coverImage) && Objects.equals(downloadCount, book.downloadCount) && Objects.equals(createdAt, book.createdAt) && Objects.equals(updatedAt, book.updatedAt) && Objects.equals(commentCount, book.commentCount) && Objects.equals(uploadedBy, book.uploadedBy) && Objects.equals(bookshelves, book.bookshelves) && Objects.equals(genres, book.genres);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(title, author, description, language, fileUrl, coverImage, downloadCount, createdAt, updatedAt, commentCount, uploadedBy, bookshelves, genres);
     }
 }

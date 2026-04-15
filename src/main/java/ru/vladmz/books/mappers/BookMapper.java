@@ -1,7 +1,7 @@
 package ru.vladmz.books.mappers;
 
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
-import ru.vladmz.books.DTOs.book.BookRequest;
+import ru.vladmz.books.DTOs.book.BookCreateRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.User;
@@ -42,13 +42,11 @@ public class BookMapper {
 
     /**NOTE: After mapping, userId should be added from securityContext
      **/
-    public static Book toBook(BookRequest request) {
+    public static Book toBook(BookCreateRequest request) {
         Book book = new Book();
         book.setTitle(request.title());
         book.setDescription(request.description());
         book.setLanguage(request.language());
-        book.setFileUrl(request.fileUrl());
-        book.setCoverImage(request.coverImage());
         book.setAuthor(request.author());
 
         return book;
