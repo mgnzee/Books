@@ -62,14 +62,14 @@ public class BookController {
         return ResponseEntity.ok(updated);
     }
 
-    @PatchMapping("/{id}/cover-image")
+    @PatchMapping("/{id}/cover")
     public ResponseEntity<BookResponse> updateCover(@PathVariable Integer id, @RequestParam("file") MultipartFile file) throws IOException {
         var request = new FileUploadRequest(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
         BookResponse updated = service.updateCover(id, request);
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{id}/cover-image")
+    @DeleteMapping("/{id}/cover")
     public ResponseEntity<Void> deleteCover(@PathVariable Integer id){
         service.deletePicture(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

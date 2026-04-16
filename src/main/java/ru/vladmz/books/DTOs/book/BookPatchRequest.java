@@ -1,5 +1,6 @@
 package ru.vladmz.books.DTOs.book;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import ru.vladmz.books.DTOs.genre.GenreRequest;
 
@@ -7,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public record BookPatchRequest (
+    @NotBlank
     @Size(min = 1, max = 100)
     String title,
     String author,

@@ -17,6 +17,7 @@ import ru.vladmz.books.entities.Genre;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.StorageDirectory;
+import ru.vladmz.books.exceptions.BookFileAlreadyExistsException;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.repositories.BookRepository;
@@ -84,7 +85,7 @@ public class BookService { //TODO: ADD FILE TYPE VALIDATION
     public BookResponse addBookFile(Integer bookId, FileUploadRequest file){
         Book currentBook = validateBook(bookId);
 
-        if (currentBook.getFileUrl() != null) throw new IllegalStateException("Book file already exists and cannot be changed");
+        if (currentBook.getFileUrl() != null) throw new BookFileAlreadyExistsException(bookId);
 
         String path = uploadFile(currentBook, file);
         currentBook.setFileUrl(path);
