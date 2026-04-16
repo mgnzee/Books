@@ -5,9 +5,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -17,15 +15,17 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
 import ru.vladmz.books.DTOs.book.BookCreateRequest
+import ru.vladmz.books.DTOs.book.BookPatchRequest
+import ru.vladmz.books.DTOs.book.BookResponse
 import ru.vladmz.books.DTOs.genre.GenreRequest
 import ru.vladmz.books.GlobalExceptionHandler
 import ru.vladmz.books.entities.Book
 import ru.vladmz.books.entities.Genre
 import ru.vladmz.books.exceptions.BookNotFoundException
 import ru.vladmz.books.mappers.BookMapper
-import ru.vladmz.books.repositories.BookRepository
 import ru.vladmz.books.security.JwtUtil
 import ru.vladmz.books.services.BookService
 import ru.vladmz.books.services.CustomUserDetailsService
@@ -151,22 +151,91 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
 
     @Test
     fun updateBook(){
+        val request = BookPatchRequest.builder().title("New title").build();
+        val expectedResponse = BookResponse.testTemplate(bookId, request.title)
 
+        whenever(bookService.updateBook(request, bookId)).thenReturn(expectedResponse)
+
+        mockMvc.patch("/books/$bookId") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(request)
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isOk() }
+            jsonPath("$.title") { value(request.title) }
+        }
     }
 
     @Test
     fun updateBook_shouldReturn404(){
+        val wrongId = 100
+        val newTitle = "New Title"
+        val request = BookPatchRequest.builder().title(newTitle).build()
+        whenever(bookService.updateBook(request, wrongId)).thenThrow(BookNotFoundException(wrongId))
 
+        mockMvc.patch("/books/$wrongId") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(request)
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isNotFound() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.status") { value(404) }
+            jsonPath("$.error") { value("Resource not found") }
+            jsonPath("$.message") { value("Book not found with id: $wrongId") }
+        }
     }
 
     @Test
     fun updateBook_shouldReturn403(){
+        val newTitle = "New Title"
+        val request = BookPatchRequest.builder().title(newTitle).build()
+        whenever(bookService.updateBook(request, bookId))
+            .thenThrow(org.springframework.security.access.AccessDeniedException("Forbidden"))
 
+        mockMvc.patch("/books/$bookId") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(request)
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isForbidden() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.status") { value(403) }
+            jsonPath("$.error") { value("Access denied") }
+            jsonPath("$.message") { value("Forbidden") }
+        }
     }
 
     @Test
     fun updateBook_shouldReturn400(){
+        val blankTitle = "   "
+        val request = BookPatchRequest.builder().title(blankTitle).build()
 
+        mockMvc.patch("/books/$bookId") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(request)
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isBadRequest() }
+            jsonPath("$.message") { value ("title : must not be blank; ")}
+        }
+    }
+
+    @Test
+    fun updateBook_shouldReturn405(){
+        val request = BookPatchRequest.builder().title("New title").build();
+        val expectedResponse = BookResponse.testTemplate(bookId, request.title)
+
+        whenever(bookService.updateBook(request, bookId)).thenReturn(expectedResponse)
+
+        mockMvc.post("/books/$bookId") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(request)
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isMethodNotAllowed() }
+            jsonPath("$.message") { value ("Request method 'POST' is not supported")}
+        }
     }
 
     @Test
