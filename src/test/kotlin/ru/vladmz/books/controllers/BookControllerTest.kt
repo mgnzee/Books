@@ -5,17 +5,24 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.data.domain.PageImpl
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.multipart
 import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
 import ru.vladmz.books.DTOs.FileUploadRequest
@@ -31,6 +38,8 @@ import ru.vladmz.books.mappers.BookMapper
 import ru.vladmz.books.security.JwtUtil
 import ru.vladmz.books.services.BookService
 import ru.vladmz.books.services.CustomUserDetailsService
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
 @WebMvcTest(controllers = [BookController::class, GlobalExceptionHandler::class])
 @AutoConfigureMockMvc(addFilters = false)
@@ -225,7 +234,8 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
 
     @Test
     fun updateBook_shouldReturn405(){
-        val request = BookPatchRequest.builder().title("New title").build();
+        val newTitle = "New Title"
+        val request = BookPatchRequest.builder().title(newTitle).build();
         val expectedResponse = BookResponse.testTemplate(bookId, request.title)
 
         whenever(bookService.updateBook(request, bookId)).thenReturn(expectedResponse)
@@ -236,28 +246,88 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
             accept = MediaType.APPLICATION_JSON
         }.andExpect {
             status { isMethodNotAllowed() }
+            content { contentType(MediaType.APPLICATION_JSON) }
             jsonPath("$.message") { value ("Request method 'POST' is not supported")}
         }
     }
 
     @Test
     fun updateCover(){
+        val file = MockMultipartFile("file", "cover.png", "image/png", ByteArray(1))
+        val fileRequest = FileUploadRequest(file.inputStream, file.originalFilename, file.contentType)
+        val expectedResponse = BookResponse.testTemplate(bookId, "title doesn't matter", fileRequest.originalFileName)
 
+        whenever(bookService.updateCover(eq(bookId), any())).thenReturn(expectedResponse)
+
+        mockMvc.multipart("/books/$bookId/cover") {
+            file(file)
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isOk() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.fileUrl") {value(file.originalFilename) }
+        }
+
+        verify(bookService).updateCover(eq(bookId), argThat {
+            this.originalFileName == file.originalFilename && this.contentType == file.contentType
+        })
     }
 
     @Test
     fun updateCover_shouldReturn404(){
+        val file = MockMultipartFile("file", "cover.png", "image/png", ByteArray(1))
+        whenever(bookService.updateCover(eq(bookId), any())).thenThrow(BookNotFoundException(bookId))
 
+        mockMvc.multipart("/books/$bookId/cover"){
+            file(file)
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isNotFound() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.message") { value("Book not found with id: $bookId") }
+        }
     }
 
     @Test
     fun updateCover_shouldReturn403(){
+        val file = MockMultipartFile("file", "cover.png", "image/png", ByteArray(1))
+        whenever(bookService.updateCover(eq(bookId), any()))
+            .thenThrow(org.springframework.security.access.AccessDeniedException("Forbidden"))
 
+        mockMvc.multipart("/books/$bookId/cover"){
+            file(file)
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isForbidden() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.status") { value(403) }
+            jsonPath("$.error") { value("Access denied") }
+            jsonPath("$.message") { value("Forbidden") }
+        }
     }
 
     @Test
     fun updateCover_shouldReturn400(){
-
+        mockMvc.multipart("/books/$bookId/cover"){
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isBadRequest() }
+            jsonPath("$.status") { value(400) }
+            jsonPath("$.error") { value("Required part 'file' is missing") }
+        }
+        verifyNoInteractions(bookService)
     }
 
     @Test

@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import ru.vladmz.books.exceptions.*;
 
@@ -144,6 +145,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Could not find file in request body"));
     }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequest(MissingServletRequestPartException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Required part 'file' is missing"));
+    }
+
 
 
     @ExceptionHandler(RuntimeException.class)

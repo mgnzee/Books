@@ -43,4 +43,25 @@ public record BookResponse (
                 Collections.emptySet()
         );
     }
+    /**
+     * For tests only
+     * **/
+    public static BookResponse testTemplate(Integer id, String title, String fileUrl){
+        return new BookResponse(
+                id,
+                title,
+                null,
+                null,
+                null,
+                fileUrl,
+                null,
+                0,
+                0,
+                null,
+                null,
+                null,
+                null,
+                Collections.emptySet()
+        );
+    }
 }
