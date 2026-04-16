@@ -12,11 +12,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.data.domain.PageImpl
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
+import ru.vladmz.books.DTOs.FileUploadRequest
 import ru.vladmz.books.DTOs.book.BookCreateRequest
 import ru.vladmz.books.DTOs.book.BookPatchRequest
 import ru.vladmz.books.DTOs.book.BookResponse
@@ -255,6 +257,17 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
 
     @Test
     fun updateCover_shouldReturn400(){
+
+    }
+
+    @Test
+    fun updateCover_shouldReturn413(){
+        val veryVeryLargeFile = MockMultipartFile("file", "cover.png", "image/png", ByteArray(1))
+
+    }
+
+    @Test
+    fun updateCover_shouldReturn409(){
 
     }
 

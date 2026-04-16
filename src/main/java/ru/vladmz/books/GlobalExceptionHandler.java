@@ -11,7 +11,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import ru.vladmz.books.exceptions.*;
 
 import java.time.LocalDateTime;
@@ -126,6 +127,23 @@ public class GlobalExceptionHandler {
                 .body(generateResponse(ex, HttpStatus.METHOD_NOT_ALLOWED, message.toString()));
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleSizeExceeded(MaxUploadSizeExceededException ex){
+        return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
+                .body(generateResponse(ex, HttpStatus.CONTENT_TOO_LARGE, "File is too large (Max file size = 30 MB)"));
+    }
+
+    @ExceptionHandler(BookFileAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleBookFileAlreadyExists(BookFileAlreadyExistsException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(generateResponse(ex, HttpStatus.CONFLICT, "Book file already exists"));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Could not find file in request body"));
+    }
 
 
     @ExceptionHandler(RuntimeException.class)
