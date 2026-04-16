@@ -16,11 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.data.domain.PageImpl
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.multipart
 import org.springframework.test.web.servlet.patch
@@ -38,8 +38,8 @@ import ru.vladmz.books.mappers.BookMapper
 import ru.vladmz.books.security.JwtUtil
 import ru.vladmz.books.services.BookService
 import ru.vladmz.books.services.CustomUserDetailsService
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.web.servlet.resource.NoResourceFoundException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
+import ru.vladmz.books.exceptions.BookFileAlreadyExistsException
 
 @WebMvcTest(controllers = [BookController::class, GlobalExceptionHandler::class])
 @AutoConfigureMockMvc(addFilters = false)
@@ -146,7 +146,7 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
     @Test
     fun createBook_shouldReturn400(){
         val genreId = 5;
-        val blankTitle = ""
+        val blankTitle = "   "
         val genres = setOf(GenreRequest(genreId))
         val request = BookCreateRequest(blankTitle, "Dostoevsky F.M.", "Description", "RU", genres)
 
@@ -333,51 +333,165 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
     @Test
     fun updateCover_shouldReturn413(){
         val veryVeryLargeFile = MockMultipartFile("file", "cover.png", "image/png", ByteArray(1))
-
+        whenever(bookService.updateCover(eq(bookId), any())).thenThrow(MaxUploadSizeExceededException(3))
+        mockMvc.multipart("/books/$bookId/cover"){
+            file(veryVeryLargeFile)
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isContentTooLarge() }
+            jsonPath("$.status") { value(413) }
+            jsonPath("$.error") { value("File is too large (Max file size = 30 MB)") }
+        }
     }
 
     @Test
     fun updateCover_shouldReturn409(){
-
+        val file = MockMultipartFile("file", "cover.png", "image/png", ByteArray(1))
+        whenever(bookService.updateCover(eq(bookId), any())).thenThrow(BookFileAlreadyExistsException(bookId))
+        mockMvc.multipart("/books/$bookId/cover"){
+            file(file)
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isConflict() }
+            jsonPath("$.status") { value(409) }
+            jsonPath("$.error") { value("Book file already exists") }
+        }
     }
 
     @Test
     fun deleteCover(){
+        whenever(bookService.deletePicture(bookId)).then{}
 
+        mockMvc.delete("/books/$bookId/cover"){}.andExpect {
+            status { isNoContent() }
+        }
+        verify(bookService).deletePicture(bookId)
     }
 
     @Test
     fun deleteCover_shouldReturn404(){
+        val wrongId = 100
+        whenever(bookService.deletePicture(wrongId)).thenThrow(BookNotFoundException(wrongId))
 
+        mockMvc.delete("/books/$wrongId/cover"){
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isNotFound() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.status") { value(404) }
+            jsonPath("$.error") { value("Resource not found") }
+            jsonPath("$.message") { value("Book not found with id: $wrongId") }
+        }
     }
 
     @Test
     fun deleteBook(){
+        whenever(bookService.deleteBook(bookId)).then{}
 
+        mockMvc.delete("/books/$bookId"){}.andExpect {
+            status { isNoContent() }
+        }
+        verify(bookService).deleteBook(bookId)
     }
 
     @Test
     fun deleteBook_shouldReturn404(){
+        val wrongId = 100
+        whenever(bookService.deleteBook(wrongId)).thenThrow(BookNotFoundException(wrongId))
 
+        mockMvc.delete("/books/$wrongId"){
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isNotFound() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.status") { value(404) }
+            jsonPath("$.error") { value("Resource not found") }
+            jsonPath("$.message") { value("Book not found with id: $wrongId") }
+        }
     }
 
     @Test
     fun deleteBook_shouldReturn403(){
+        whenever(bookService.deleteBook(bookId))
+            .thenThrow(org.springframework.security.access.AccessDeniedException("Forbidden"))
 
+        mockMvc.delete("/books/$bookId"){
+            accept = MediaType.APPLICATION_JSON
+        }.andExpect {
+            status { isForbidden() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.status") { value(403) }
+            jsonPath("$.error") { value("Access denied") }
+            jsonPath("$.message") { value("Forbidden") }
+        }
     }
 
     @Test
     fun addBookFile(){
+        val file = MockMultipartFile("file", "book.pdf", "file/pdf", ByteArray(1))
+        val fileRequest = FileUploadRequest(file.inputStream, file.originalFilename, file.contentType)
+        val expectedResponse = BookResponse.testTemplate(bookId, "title doesn't matter", fileRequest.originalFileName)
 
+        whenever(bookService.addBookFile(eq(bookId), any())).thenReturn(expectedResponse)
+
+        mockMvc.multipart("/books/$bookId/file") {
+            file(file)
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isOk() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.fileUrl") {value(file.originalFilename) }
+        }
+
+        verify(bookService).addBookFile(eq(bookId), argThat {
+            this.originalFileName == file.originalFilename && this.contentType == file.contentType
+        })
     }
 
     @Test
     fun addBookFile_shouldReturn404(){
+        val file = MockMultipartFile("file", "book.pdf", "application/pdf", ByteArray(1))
+        whenever(bookService.addBookFile(eq(bookId), any())).thenThrow(BookNotFoundException(bookId))
 
+        mockMvc.multipart("/books/$bookId/file"){
+            file(file)
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isNotFound() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.message") { value("Book not found with id: $bookId") }
+        }
     }
 
     @Test
     fun addBookFile_shouldReturn403(){
+        val file = MockMultipartFile("file", "book.pdf", "application/pdf", ByteArray(1))
+        whenever(bookService.addBookFile(eq(bookId), any()))
+            .thenThrow(org.springframework.security.access.AccessDeniedException("Forbidden"))
 
+        mockMvc.multipart("/books/$bookId/file"){
+            file(file)
+            with {
+                request -> request.method = "PATCH"
+                request
+            }
+        }.andExpect {
+            status { isForbidden() }
+            content { contentType(MediaType.APPLICATION_JSON) }
+            jsonPath("$.error") { value("Access denied") }
+            jsonPath("$.message") { value("Forbidden") }
+        }
     }
 }
