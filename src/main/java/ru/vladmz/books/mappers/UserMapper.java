@@ -30,7 +30,8 @@ public class UserMapper {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getProfilePicture()
+                user.getProfilePicture(),
+                user.getRole().name()
         );
     }
 }

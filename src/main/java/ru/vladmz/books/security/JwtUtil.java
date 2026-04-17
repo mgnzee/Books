@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.etc.UserRole;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -31,6 +32,7 @@ public class JwtUtil {
     public String generateToken(User user){
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
+        claims.put("userRole", user.getRole().name());
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getEmail())
@@ -56,6 +58,15 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.get("userId", Integer.class);
+    }
+
+    public String extractUserRole(String token){
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("userRole", String.class);
     }
 
     public boolean validateToken(String token){

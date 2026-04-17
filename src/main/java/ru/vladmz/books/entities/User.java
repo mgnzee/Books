@@ -1,10 +1,8 @@
 package ru.vladmz.books.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -13,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ru.vladmz.books.entities.interfaces.Ownable;
 import ru.vladmz.books.entities.interfaces.SoftDeletable;
+import ru.vladmz.books.etc.UserRole;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +42,10 @@ public class User extends BaseEntity implements UserDetails, Ownable, SoftDeleta
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "role")
+    @Enumerated(value = EnumType.STRING)
+    private UserRole role;
+
     @OneToMany(mappedBy = "uploadedBy")
     private List<Book> books = new ArrayList<>();
 
@@ -62,6 +65,11 @@ public class User extends BaseEntity implements UserDetails, Ownable, SoftDeleta
         this.name = name;
         this.email = email;
         this.profilePicture = profilePicture;
+    }
+
+    @PrePersist
+    private void onCreate(){
+        this.role = UserRole.USER;
     }
 
     @JsonIgnore
@@ -137,7 +145,7 @@ public class User extends BaseEntity implements UserDetails, Ownable, SoftDeleta
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
     }
 
     @Override
@@ -153,5 +161,14 @@ public class User extends BaseEntity implements UserDetails, Ownable, SoftDeleta
     @Override
     public boolean isEnabled() {
         return !isDisabled;
+    }
+
+    public UserRole getRole() {
+        if (role == null) return UserRole.USER;
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 }

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -37,7 +38,7 @@ public class UserController {
 
     //TODO: ADD JWT TO RESPONSE
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestPart @Valid UserCreateRequest request) throws IOException {
+    public ResponseEntity<UserResponse> createUser(@RequestBody @Valid UserCreateRequest request){
         User user = UserMapper.toUser(request);
         UserResponse created = service.createUser(user, request.getRawPassword());
 
@@ -106,17 +107,20 @@ public class UserController {
         return ResponseEntity.ok(service.restoreUser(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/disable")
     public ResponseEntity<UserResponse> disableUser(@PathVariable Integer id){
         return ResponseEntity.ok(service.disableUser(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/enable")
     public ResponseEntity<UserResponse> enableUser(@PathVariable Integer id){
         return ResponseEntity.ok(service.enableUser(id));
     }
 
     //TODO: ADD CASCADE DELETION
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}/permanent")
     public ResponseEntity<Void> deletePermanently(@PathVariable Integer id){
         service.hardDelete(id);
