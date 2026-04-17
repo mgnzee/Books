@@ -28,37 +28,37 @@ public class BookCommentController {
     }
 
     @GetMapping
-    public Page<CommentResponse> selectByTargetId(@PathVariable Integer bookId,
-                                                  @RequestParam(defaultValue = "0") int page,
-                                                  @RequestParam(defaultValue = "10") int size,
-                                                  @RequestParam(defaultValue = "TIME") EntitySort sort,
-                                                  @RequestParam(defaultValue = "DESC") Sort.Direction direction){
+    public Page<CommentResponse> findByTargetId(@PathVariable Integer bookId,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size,
+                                                @RequestParam(defaultValue = "TIME") EntitySort sort,
+                                                @RequestParam(defaultValue = "DESC") Sort.Direction direction){
         return service.getCommentsByTargetId(CommentTarget.ofBook(bookId), PageParams.of(page, size, sort, direction));
     }
 
     @GetMapping("/{commentId}")
-    public CommentResponse selectById(@PathVariable Integer bookId, @PathVariable Integer commentId){
+    public CommentResponse findById(@PathVariable Integer bookId, @PathVariable Integer commentId){
         return service.findById(commentId, CommentTarget.ofBook(bookId));
     }
 
     @GetMapping("/{commentId}/replies")
-    public Page<CommentResponse> selectReplies(@PathVariable Integer bookId,
-                                               @PathVariable Integer commentId,
-                                               @RequestParam(defaultValue = "0") int page,
-                                               @RequestParam(defaultValue = "10") int size){
-        return service.getReplies(CommentTarget.ofBook(bookId), commentId, PageParams.of(page, size, EntitySort.TIME, Sort.Direction.ASC));
+    public Page<CommentResponse> findReplies(@PathVariable Integer bookId,
+                                             @PathVariable Integer commentId,
+                                             @RequestParam(defaultValue = "0") int page,
+                                             @RequestParam(defaultValue = "10") int size){
+        return service.findReplies(CommentTarget.ofBook(bookId), commentId, PageParams.of(page, size, EntitySort.TIME, Sort.Direction.ASC));
     }
 
 
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookId,
                                                          @RequestBody @Valid CommentRequest request){
-        CommentResponse created = service.createComment(CommentMapper.patchComment(request), request.getParentCommentId(), CommentTarget.ofBook(bookId));
+        CommentResponse created = service.createComment(CommentMapper.patchComment(request), request.parentCommentId(), CommentTarget.ofBook(bookId));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PatchMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId,
+    public ResponseEntity<CommentResponse> updateComment(@PathVariable Integer bookId, @PathVariable Integer commentId,
                                                          @RequestBody @Valid CommentPatchRequest request){
         CommentResponse updated = service.updateComment(request, commentId, CommentTarget.ofBook(bookId));
         return ResponseEntity.status(HttpStatus.OK).body(updated);

@@ -58,7 +58,7 @@ public class CommentService implements DeletableChecker{
     }
 
     @Transactional(readOnly = true)
-    public Page<CommentResponse> getReplies(CommentTarget target, Integer commentId, PageParams page){
+    public Page<CommentResponse> findReplies(CommentTarget target, Integer commentId, PageParams page){
         Page<Comment> commentPage = commentRepository.findReplies(target.type(), target.id(), commentId, page.toPageable());
         return commentPage.map(CommentMapper::toResponse);
     }
