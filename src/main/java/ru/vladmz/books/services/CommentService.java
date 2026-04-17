@@ -88,8 +88,7 @@ public class CommentService implements DeletableChecker{
     private void setParent(Comment comment, Integer parentCommentId){
         Comment parent = commentRepository.findById(parentCommentId).orElseThrow(() -> new CommentNotFoundException(parentCommentId));
         comment.setParentComment(parent);
-        //TODO: CERTAINLY CHANGE
-        parent.setRepliesCount(Optional.ofNullable(parent.getRepliesCount()).orElse(0) + 1);
+        commentRepository.incrementCommentCount(parentCommentId);
     }
 
     private void targetIncrementCommentCount(CommentTarget target){
@@ -100,11 +99,10 @@ public class CommentService implements DeletableChecker{
         findTarget(target).decrementCommentCount();
     }
 
-
-    //TODO: MAKE SURE TARGET ID ACTUALLY MATCHES COMMENT.GETTARGETID
     public CommentResponse updateComment(@NonNull CommentPatchRequest request, Integer commentId, CommentTarget target){
         findTarget(target);
-        Comment comment = commentRepository.findByIdAndTarget(commentId, target.type(), target.id()).orElseThrow(() -> new CommentNotFoundException(commentId));
+        Comment comment = commentRepository.findByIdAndTarget(commentId, target.type(), target.id())
+                .orElseThrow(() -> new CommentNotFoundException(commentId));
         permissionChecker.checkPermission(comment);
         checkDeleted(comment);
         CommentMapper.patchComment(comment, request);
@@ -113,7 +111,8 @@ public class CommentService implements DeletableChecker{
 
     public void deleteComment(Integer commentId, CommentTarget target){
         findTarget(target);
-        Comment comment = commentRepository.findByIdAndTarget(commentId, target.type(), target.id()).orElseThrow(() -> new CommentNotFoundException(commentId));
+        Comment comment = commentRepository.findByIdAndTarget(commentId, target.type(), target.id())
+                .orElseThrow(() -> new CommentNotFoundException(commentId));
         permissionChecker.checkPermission(comment);
         checkDeleted(comment);
         targetDecrementCommentCount(target);
@@ -124,7 +123,7 @@ public class CommentService implements DeletableChecker{
     private void updateParent(Comment comment){
         if (comment.getParentComment() != null){
             Comment parent = comment.getParentComment();
-            parent.setRepliesCount(Math.max(0, parent.getRepliesCount()-1));
+            commentRepository.decrementCommentCount(parent.getId());
         }
     }
 }
