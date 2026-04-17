@@ -3,6 +3,7 @@ package ru.vladmz.books.repositories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -44,9 +45,15 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
             "LEFT JOIN FETCH c.user " +
             "WHERE c.id = :commentId AND c.targetType = :targetType AND c.targetId = :targetId")
     Optional<Comment> findByIdAndTarget(@Param("commentId") Integer commentId,
-                                        @Param("targetType") TargetType targetType,
-                                        @Param("targetId") Integer targetId);
+                                        @Param("type") TargetType targetType,
+                                        @Param("id") Integer targetId);
 
+    @Modifying
+    @Query("UPDATE Comment c SET c.repliesCount = c.repliesCount + 1 WHERE c.id = :commentId")
+    void incrementCommentCount(Integer commentId);
 
+    @Modifying
+    @Query("UPDATE Comment c SET c.repliesCount = greatest(c.repliesCount - 1, 0) WHERE c.id = :commentId")
+    void decrementCommentCount(Integer commentId);
 
 }

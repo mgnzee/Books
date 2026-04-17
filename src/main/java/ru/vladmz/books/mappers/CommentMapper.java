@@ -18,7 +18,7 @@ public class CommentMapper {
      * **/
     public static Comment patchComment(CommentRequest request){
         Comment comment = new Comment();
-        comment.setText(request.getText());
+        comment.setText(request.text());
 
         return comment;
     }
