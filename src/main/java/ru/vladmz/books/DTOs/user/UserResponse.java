@@ -6,12 +6,14 @@ public class UserResponse {
     private String name;
     private String email;
     private String profilePicture;
+    private String role;
 
-    public UserResponse(Integer id, String name, String email, String profilePicture) {
+    public UserResponse(Integer id, String name, String email, String profilePicture, String userRole) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.profilePicture = profilePicture;
+        this.role = userRole;
     }
 
     public Integer getId() {
@@ -44,5 +46,13 @@ public class UserResponse {
 
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

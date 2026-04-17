@@ -2,7 +2,9 @@ package ru.vladmz.books.security;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
+import ru.vladmz.books.entities.User;
 import ru.vladmz.books.entities.interfaces.Ownable;
+import ru.vladmz.books.etc.UserRole;
 
 @Component
 public class PermissionChecker {
@@ -14,7 +16,9 @@ public class PermissionChecker {
     }
 
     public void checkPermission(Ownable ownable){
-        if (!ownable.getOwner().getEmail().equals(securityUtils.getCurrentUserEmail()))
+        User owner = ownable.getOwner();
+
+        if (!owner.getEmail().equals(securityUtils.getCurrentUserEmail()) && !securityUtils.getCurrentRole().equals(UserRole.ADMIN))
             throw new AccessDeniedException("No rights to change resource with id: " + ownable.getId());
     }
 }
