@@ -3,16 +3,14 @@ package ru.vladmz.books.services;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.vladmz.books.DTOs.CommentTarget;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.comment.CommentPatchRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.entities.Comment;
 import ru.vladmz.books.entities.interfaces.Commentable;
-import ru.vladmz.books.etc.EntitySort;
 import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.exceptions.CommentNotFoundException;
 import ru.vladmz.books.exceptions.ResourceNotFoundException;
@@ -37,7 +35,8 @@ public class CommentService implements DeletableChecker{
     private final Map<TargetType, CommentTargetStrategy> strategies;
 
     @Autowired
-    public CommentService(CommentRepository repository, PermissionChecker permissionChecker, CurrentUserProvider provider, List<CommentTargetStrategy> strategyList) {
+    public CommentService(CommentRepository repository, PermissionChecker permissionChecker,
+                          CurrentUserProvider provider, List<CommentTargetStrategy> strategyList) {
         this.commentRepository = repository;
         this.permissionChecker = permissionChecker;
         this.provider = provider;
@@ -45,49 +44,45 @@ public class CommentService implements DeletableChecker{
                 .collect(Collectors.toMap(CommentTargetStrategy::getType, strategy -> strategy));
     }
 
-    private @NonNull Commentable findTarget(@NonNull TargetType targetType, Integer targetId){
-        CommentTargetStrategy strategy = strategies.get(targetType);
-        if(strategy == null) throw new ResourceNotFoundException("Resource not found with type: " + targetType + " and id: " + targetId);
-        return strategy.findById(targetId);
+    private @NonNull Commentable findTarget(CommentTarget target){
+        CommentTargetStrategy strategy = strategies.get(target.type());
+        if (strategy == null) throw new ResourceNotFoundException("Resource not found with type: " + target.type() + " and id: " + target.id());
+        return strategy.findById(target.id());
     }
 
-    //TODO: REFACTOR ARGS
     @Transactional(readOnly = true)
-    public Page<CommentResponse> getCommentsByTargetId(Integer targetId, TargetType targetType, int page, int size, @NonNull EntitySort sortBy, Sort.Direction direction){
-        findTarget(targetType, targetId);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy.getFieldName()));
-        Page<Comment> commentPage = commentRepository.findAllByIdAndTargetId(targetType, targetId, pageable);
+    public Page<CommentResponse> getCommentsByTargetId(CommentTarget target, PageParams page){
+        findTarget(target);
+        Page<Comment> commentPage = commentRepository.findAllByIdAndTargetId(target.type(), target.id(), page.toPageable());
         return commentPage.map(CommentMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public Page<CommentResponse> getReplies(Integer targetId, TargetType type, Integer commentId, int page, int size){
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
-        Page<Comment> commentPage = commentRepository.findReplies(type, targetId, commentId, pageable);
+    public Page<CommentResponse> getReplies(CommentTarget target, Integer commentId, PageParams page){
+        Page<Comment> commentPage = commentRepository.findReplies(target.type(), target.id(), commentId, page.toPageable());
         return commentPage.map(CommentMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
-    public CommentResponse findById(Integer commentId, TargetType targetType, Integer targetId){
-        return CommentMapper.toResponse(commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() ->
+    public CommentResponse findById(Integer commentId, CommentTarget target){
+        return CommentMapper.toResponse(commentRepository.findByIdAndTarget(commentId, target.type(), target.id()).orElseThrow(() ->
                 new CommentNotFoundException(commentId)));
     }
 
-    //TODO: REFACTOR ARGS
-    public CommentResponse saveComment(Comment comment, Integer parentCommentId, Integer targetId, TargetType targetType){
-        addPropertiesToComment(comment, targetType, targetId);
-        targetIncrementCommentCount(targetType, targetId);
-        //TODO: I PROBABLY SHOULD CHANGE THIS TO DIFFERENT FUNCTIONS
-        if (parentCommentId != null) setParent(comment, parentCommentId);
-        else comment.setParentComment(null);
+    public CommentResponse createComment(Comment comment, Integer parentCommentId, CommentTarget target) {
+        addPropertiesToComment(comment, target);
+        targetIncrementCommentCount(target);
+
+        Optional.ofNullable(parentCommentId)
+                .ifPresent(id -> setParent(comment, id));
 
         return CommentMapper.toResponse(commentRepository.save(comment));
     }
 
-    private void addPropertiesToComment(Comment comment, TargetType targetType, Integer targetId){
+    private void addPropertiesToComment(Comment comment, CommentTarget target){
         comment.setUser(provider.get());
-        comment.setTargetType(targetType);
-        comment.setTargetId(targetId);
+        comment.setTargetType(target.type());
+        comment.setTargetId(target.id());
     }
 
     private void setParent(Comment comment, Integer parentCommentId){
@@ -97,32 +92,31 @@ public class CommentService implements DeletableChecker{
         parent.setRepliesCount(Optional.ofNullable(parent.getRepliesCount()).orElse(0) + 1);
     }
 
-    private void targetIncrementCommentCount(TargetType targetType, Integer targetId){
-        findTarget(targetType, targetId).incrementCommentCount();
+    private void targetIncrementCommentCount(CommentTarget target){
+        findTarget(target).incrementCommentCount();
     }
 
-    private void targetDecrementCommentCount(TargetType targetType, Integer targetId){
-        findTarget(targetType, targetId).decrementCommentCount();
+    private void targetDecrementCommentCount(CommentTarget target){
+        findTarget(target).decrementCommentCount();
     }
 
 
     //TODO: MAKE SURE TARGET ID ACTUALLY MATCHES COMMENT.GETTARGETID
-    //TODO: REFACTOR ARGS
-    public CommentResponse updateComment(@NonNull CommentPatchRequest request, Integer commentId, Integer targetId, TargetType targetType){
-        findTarget(targetType, targetId);
-        Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
+    public CommentResponse updateComment(@NonNull CommentPatchRequest request, Integer commentId, CommentTarget target){
+        findTarget(target);
+        Comment comment = commentRepository.findByIdAndTarget(commentId, target.type(), target.id()).orElseThrow(() -> new CommentNotFoundException(commentId));
         permissionChecker.checkPermission(comment);
         checkDeleted(comment);
         CommentMapper.patchComment(comment, request);
         return CommentMapper.toResponse(commentRepository.save(comment));
     }
 
-    public void deleteComment(Integer commentId, TargetType targetType, Integer targetId){
-        findTarget(targetType, targetId);
-        Comment comment = commentRepository.findByIdAndTarget(commentId, targetType, targetId).orElseThrow(() -> new CommentNotFoundException(commentId));
+    public void deleteComment(Integer commentId, CommentTarget target){
+        findTarget(target);
+        Comment comment = commentRepository.findByIdAndTarget(commentId, target.type(), target.id()).orElseThrow(() -> new CommentNotFoundException(commentId));
         permissionChecker.checkPermission(comment);
         checkDeleted(comment);
-        targetDecrementCommentCount(targetType, targetId);
+        targetDecrementCommentCount(target);
         updateParent(comment);
         comment.delete();
     }

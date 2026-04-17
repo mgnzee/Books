@@ -44,8 +44,8 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
             "LEFT JOIN FETCH c.user " +
             "WHERE c.id = :commentId AND c.targetType = :targetType AND c.targetId = :targetId")
     Optional<Comment> findByIdAndTarget(@Param("commentId") Integer commentId,
-                                        @Param("targetType") TargetType targetType,
-                                        @Param("targetId") Integer targetId);
+                                        @Param("type") TargetType targetType,
+                                        @Param("id") Integer targetId);
 
 
 

@@ -7,13 +7,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.vladmz.books.DTOs.CommentTarget;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.comment.CommentPatchRequest;
 import ru.vladmz.books.DTOs.comment.CommentRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
 import ru.vladmz.books.etc.EntitySort;
-import ru.vladmz.books.etc.TargetType;
 import ru.vladmz.books.mappers.CommentMapper;
-import ru.vladmz.books.security.SecurityUtils;
 import ru.vladmz.books.services.CommentService;
 
 @RestController
@@ -23,7 +23,7 @@ public class BookCommentController {
     private final CommentService service;
 
     @Autowired
-    public BookCommentController(CommentService service, SecurityUtils securityUtils) {
+    public BookCommentController(CommentService service) {
         this.service = service;
     }
 
@@ -33,12 +33,12 @@ public class BookCommentController {
                                                   @RequestParam(defaultValue = "10") int size,
                                                   @RequestParam(defaultValue = "TIME") EntitySort sort,
                                                   @RequestParam(defaultValue = "DESC") Sort.Direction direction){
-        return service.getCommentsByTargetId(bookId, TargetType.BOOK, page, size, sort, direction);
+        return service.getCommentsByTargetId(CommentTarget.ofBook(bookId), PageParams.of(page, size, sort, direction));
     }
 
     @GetMapping("/{commentId}")
     public CommentResponse selectById(@PathVariable Integer bookId, @PathVariable Integer commentId){
-        return service.findById(commentId, TargetType.BOOK, bookId);
+        return service.findById(commentId, CommentTarget.ofBook(bookId));
     }
 
     @GetMapping("/{commentId}/replies")
@@ -46,26 +46,27 @@ public class BookCommentController {
                                                @PathVariable Integer commentId,
                                                @RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "10") int size){
-        return service.getReplies(bookId, TargetType.BOOK, commentId, page, size);
+        return service.getReplies(CommentTarget.ofBook(bookId), commentId, PageParams.of(page, size, EntitySort.TIME, Sort.Direction.ASC));
     }
 
 
     @PostMapping
-    public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookId, @RequestBody @Valid CommentRequest request){
-        CommentResponse created = service.saveComment(CommentMapper.patchComment(request), request.getParentCommentId(), bookId, TargetType.BOOK);
+    public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookId,
+                                                         @RequestBody @Valid CommentRequest request){
+        CommentResponse created = service.createComment(CommentMapper.patchComment(request), request.getParentCommentId(), CommentTarget.ofBook(bookId));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PatchMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId, @RequestBody @Valid CommentPatchRequest request){
-        //Comment comment = CommentMapper.patchComment(request);
-        CommentResponse updated = service.updateComment(request, commentId, bookId, TargetType.BOOK);
+    public ResponseEntity<CommentResponse> changeComment(@PathVariable Integer bookId, @PathVariable Integer commentId,
+                                                         @RequestBody @Valid CommentPatchRequest request){
+        CommentResponse updated = service.updateComment(request, commentId, CommentTarget.ofBook(bookId));
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Integer bookId, @PathVariable Integer commentId){
-        service.deleteComment(commentId, TargetType.BOOK, bookId);
+        service.deleteComment(commentId, CommentTarget.ofBook(bookId));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
