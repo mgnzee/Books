@@ -11,7 +11,7 @@ import ru.vladmz.books.entities.Book;
 import java.util.List;
 
 @Repository
-public interface BookRepository extends JpaRepository<Book, Integer> {
+public interface BookRepository extends JpaRepository<Book, Integer> { //TODO: FIX N+1!!!!!!!!!
 
     @EntityGraph(attributePaths = {"uploadedBy"})
     Page<Book> findAll(Pageable pageable);

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.vladmz.books.DTOs.FileUploadRequest;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookCreateRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
@@ -48,7 +49,7 @@ public class BookController {
                                       @RequestParam(defaultValue = "TIME") EntitySort sort,
                                       @RequestParam(defaultValue = "DESC") Sort.Direction direction)
     {
-        return service.findAll(page, size, sort, direction);
+        return service.findAll(PageParams.of(page, size, sort, direction));
     }
 
     @GetMapping("/{id}")

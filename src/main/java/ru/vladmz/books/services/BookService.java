@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vladmz.books.DTOs.FileUploadRequest;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.DTOs.genre.GenreRequest;
@@ -40,7 +41,8 @@ public class BookService { //TODO: ADD FILE TYPE VALIDATION
     private final FileService fileService;
 
     @Autowired
-    public BookService(BookRepository repository, PermissionChecker permissionChecker, CurrentUserProvider currentUserProvider, GenreRepository genreRepository, FileService fileService) {
+    public BookService(BookRepository repository, PermissionChecker permissionChecker,
+                       CurrentUserProvider currentUserProvider, GenreRepository genreRepository, FileService fileService) {
         this.repository = repository;
         this.permissionChecker = permissionChecker;
         this.currentUserProvider = currentUserProvider;
@@ -56,9 +58,8 @@ public class BookService { //TODO: ADD FILE TYPE VALIDATION
     }
 
     @Transactional(readOnly = true)
-    public Page<BookResponse> findAll(int page, int size, @NonNull EntitySort sort, Sort.Direction direction){
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort.getFieldName()));
-        Page<Book> bookPage = repository.findAll(pageable);
+    public Page<BookResponse> findAll(PageParams page){
+        Page<Book> bookPage = repository.findAll(page.toPageable());
         return bookPage.map(BookMapper::toResponse);
     }
 

@@ -102,7 +102,7 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
             BookMapper.toResponse(book),
             BookMapper.toResponse(book),
             BookMapper.toResponse(book)))
-        whenever(bookService.findAll(anyInt(), anyInt(), anyOrNull(), anyOrNull()))
+        whenever(bookService.findAll(any()))
             .thenReturn(books)
 
         mockMvc.get("/books") {
