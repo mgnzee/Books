@@ -17,55 +17,55 @@ import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.services.CommentService;
 
 @RestController
-@RequestMapping("/bookshelves/{bookshelfId}/comments")
-public class BookshelfCommentController {
+@RequestMapping("/posts/{postId}/comments")
+public class PostCommentController {
 
     private final CommentService service;
 
     @Autowired
-    public BookshelfCommentController(CommentService service) {
+    public PostCommentController(CommentService service) {
         this.service = service;
     }
 
     @GetMapping
-    public Page<CommentResponse> findByTargetId(@PathVariable Integer bookshelfId,
+    public Page<CommentResponse> findByTargetId(@PathVariable Integer postId,
                                                 @RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "10") int size,
                                                 @RequestParam(defaultValue = "TIME") EntitySort sort,
                                                 @RequestParam(defaultValue = "DESC") Sort.Direction direction){
-        return service.getCommentsByTargetId(CommentTarget.ofBookshelf(bookshelfId), PageParams.of(page, size, sort, direction));
+        return service.getCommentsByTargetId(CommentTarget.ofPost(postId), PageParams.of(page, size, sort, direction));
     }
 
     @GetMapping("/{commentId}")
-    public CommentResponse findById(@PathVariable Integer bookshelfId, @PathVariable Integer commentId){
-        return service.findById(commentId, CommentTarget.ofBookshelf(bookshelfId));
+    public CommentResponse findById(@PathVariable Integer postId, @PathVariable Integer commentId){
+        return service.findById(commentId, CommentTarget.ofPost(postId));
     }
 
     @GetMapping("/{commentId}/replies")
-    public Page<CommentResponse> findReplies(@PathVariable Integer bookshelfId,
+    public Page<CommentResponse> findReplies(@PathVariable Integer postId,
                                              @PathVariable Integer commentId,
                                              @RequestParam(defaultValue = "0") int page,
                                              @RequestParam(defaultValue = "10") int size){
-        return service.findReplies(CommentTarget.ofBookshelf(bookshelfId), commentId, PageParams.of(page, size, EntitySort.TIME, Sort.Direction.ASC));
+        return service.findReplies(CommentTarget.ofPost(postId), commentId, PageParams.of(page, size, EntitySort.TIME, Sort.Direction.ASC));
     }
 
     @PostMapping
-    public ResponseEntity<CommentResponse> createComment(@PathVariable Integer bookshelfId,
+    public ResponseEntity<CommentResponse> createComment(@PathVariable Integer postId,
                                                          @RequestBody @Valid CommentRequest request){
-        CommentResponse created = service.createComment(CommentMapper.patchComment(request), request.parentCommentId(), CommentTarget.ofBookshelf(bookshelfId));
+        CommentResponse created = service.createComment(CommentMapper.patchComment(request), request.parentCommentId(), CommentTarget.ofPost(postId));
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PatchMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(@PathVariable Integer bookshelfId, @PathVariable Integer commentId,
+    public ResponseEntity<CommentResponse> updateComment(@PathVariable Integer postId, @PathVariable Integer commentId,
                                                          @RequestBody @Valid CommentPatchRequest request){
-        CommentResponse updated = service.updateComment(request, commentId, CommentTarget.ofBookshelf(bookshelfId));
+        CommentResponse updated = service.updateComment(request, commentId, CommentTarget.ofPost(postId));
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Integer bookshelfId, @PathVariable Integer commentId){
-        service.deleteComment(commentId, CommentTarget.ofBookshelf(bookshelfId));
+    public ResponseEntity<Void> deleteComment(@PathVariable Integer postId, @PathVariable Integer commentId){
+        service.deleteComment(commentId, CommentTarget.ofPost(postId));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
