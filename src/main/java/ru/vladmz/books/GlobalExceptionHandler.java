@@ -152,6 +152,12 @@ public class GlobalExceptionHandler {
                 .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Required part 'file' is missing"));
     }
 
+    @ExceptionHandler(BookAlreadyInBookshelfException.class)
+    public ResponseEntity<ErrorResponse> handleBookAlreadyInBookshelf(BookAlreadyInBookshelfException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(generateResponse(ex, HttpStatus.CONFLICT, "Can't add duplicate book in bookshelf"));
+    }
+
 
 
     @ExceptionHandler(RuntimeException.class)

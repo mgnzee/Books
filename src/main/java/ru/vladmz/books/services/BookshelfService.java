@@ -11,6 +11,7 @@ import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.exceptions.BookAlreadyInBookshelfException;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
 import ru.vladmz.books.exceptions.UserNotFoundException;
@@ -82,6 +83,7 @@ public class BookshelfService {
         permissionChecker.checkPermission(bookshelf);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
+        if (bookshelf.getBooks().contains(book)) throw new BookAlreadyInBookshelfException(bookId, bookshelfId);
         bookshelf.addBook(book);
         book.incrementDownloadCount();
         return BookMapper.toResponse(book);
