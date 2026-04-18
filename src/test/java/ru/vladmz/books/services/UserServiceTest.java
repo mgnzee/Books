@@ -129,7 +129,7 @@ class UserServiceTest {
         List<BookshelfResponse> result = service.findBookshelvesOfUser(user.getId());
 
         assertEquals(1, result.size());
-        assertEquals(bookshelf.getTitle(), result.getFirst().getTitle());
+        assertEquals(bookshelf.title(), result.getFirst().title());
     }
 
     @Test

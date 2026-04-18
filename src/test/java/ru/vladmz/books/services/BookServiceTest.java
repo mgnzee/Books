@@ -12,11 +12,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.User;
-import ru.vladmz.books.etc.EntitySort;
+import ru.vladmz.books.etc.pageSorting.BookSort;
+import ru.vladmz.books.etc.pageSorting.EntitySort;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.security.CurrentUserProvider;
@@ -81,12 +83,12 @@ public class BookServiceTest {
     void findAll_shouldPassCorrectPageable(){
         int page = 2;
         int size = 15;
-        EntitySort sort = EntitySort.TIME;
+        EntitySort sort = BookSort.TIME;
         Sort.Direction direction = Sort.Direction.DESC;
 
         when(bookRepository.findAll(any(Pageable.class))).thenReturn(Page.empty());
 
-        bookService.findAll(page, size, sort, direction);
+        bookService.findAll(PageParams.of(page, size, sort, direction));
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(bookRepository).findAll(pageableCaptor.capture());
@@ -103,7 +105,7 @@ public class BookServiceTest {
         Page<Book> page = new PageImpl<>(List.of(book));
         when(bookRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-        Page<BookResponse> result = bookService.findAll(0, 10, EntitySort.TIME, Sort.Direction.DESC);
+        Page<BookResponse> result = bookService.findAll(PageParams.of(0, 10, BookSort.TIME, Sort.Direction.DESC));
 
         assertEquals(1, result.getContent().size());
         assertEquals(1, result.getContent().get(0).id());
@@ -112,7 +114,7 @@ public class BookServiceTest {
     @Test
     void findAll_shouldReturnEmptyPage(){
         when(bookRepository.findAll(any(Pageable.class))).thenReturn(Page.empty());
-        Page<BookResponse> result = bookService.findAll(0, 10, EntitySort.TIME, Sort.Direction.DESC);
+        Page<BookResponse> result = bookService.findAll(PageParams.of(0, 10, BookSort.TIME, Sort.Direction.DESC));
         assertTrue(result.getContent().isEmpty());
     }
 

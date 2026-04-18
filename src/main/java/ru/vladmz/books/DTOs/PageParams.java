@@ -3,7 +3,8 @@ package ru.vladmz.books.DTOs;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import ru.vladmz.books.etc.EntitySort;
+import ru.vladmz.books.etc.pageSorting.DefaultSort;
+import ru.vladmz.books.etc.pageSorting.EntitySort;
 
 public record PageParams(
         int pageNumber,
@@ -12,7 +13,7 @@ public record PageParams(
         Sort.Direction sortDirection
 ) {
 
-    private static final PageParams firstPage = new PageParams(0, 50, EntitySort.TIME, Sort.Direction.DESC);
+    private static final PageParams firstPage = new PageParams(0, 50, DefaultSort.TIME, Sort.Direction.DESC);
 
     public PageParams{
         if (pageNumber < 0) pageNumber = 0;
@@ -38,7 +39,7 @@ public record PageParams(
     public static class Builder{
         private int pageNumber = 0;
         private int pageSize = 20;
-        private EntitySort sortBy = EntitySort.TIME;
+        private EntitySort sortBy = DefaultSort.TIME;
         private Sort.Direction sortDirection = Sort.Direction.DESC;
 
         private Builder(){}

@@ -1,20 +1,25 @@
 package ru.vladmz.books.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfPatchRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.exceptions.BookAlreadyInBookshelfException;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
+import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.mappers.BookshelfMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
+import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
 
@@ -26,20 +31,23 @@ public class BookshelfService {
 
     private final BookshelfRepository bookshelfRepository;
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
     private final PermissionChecker permissionChecker;
     private final CurrentUserProvider provider;
 
     @Autowired
-    public BookshelfService(BookshelfRepository repository, BookRepository bookRepository, PermissionChecker permissionChecker, CurrentUserProvider provider) {
+    public BookshelfService(BookshelfRepository repository, BookRepository bookRepository, UserRepository userRepository,
+                            PermissionChecker permissionChecker, CurrentUserProvider provider) {
         this.bookshelfRepository = repository;
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
         this.permissionChecker = permissionChecker;
         this.provider = provider;
     }
 
     @Transactional(readOnly = true)
-    public List<BookshelfResponse> findAll(){
-        return bookshelfRepository.findAll().stream().map(BookshelfResponse::new).toList();
+    public Page<BookshelfResponse> findAll(PageParams page){
+        return bookshelfRepository.findAll(page.toPageable()).map(BookshelfResponse::new);
     }
 
     @Transactional(readOnly = true)
@@ -64,10 +72,9 @@ public class BookshelfService {
 
     //TODO: CHECK FOR N+1
     @Transactional(readOnly = true)
-    public List<BookResponse> findBooksByBookshelfId(Integer id) {
-        Bookshelf bookshelf = bookshelfRepository.findById(id)
-                .orElseThrow(() -> new BookshelfNotFoundException(id));
-        return bookshelf.getBooks().stream().map(BookMapper::toResponse).toList();
+    public Page<BookResponse> findBooksByBookshelfId(Integer bookshelfId, PageParams page) {
+        if (!bookshelfRepository.existsById(bookshelfId)) throw new BookshelfNotFoundException(bookshelfId);
+        return bookRepository.findBooksByBookshelves_Id(bookshelfId, page.toPageable()).map(BookMapper::toResponse);
     }
 
     public BookResponse addBookToBookshelf(Integer bookshelfId, Integer bookId){
@@ -76,12 +83,15 @@ public class BookshelfService {
         permissionChecker.checkPermission(bookshelf);
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
+        if (bookshelf.getBooks().contains(book)) throw new BookAlreadyInBookshelfException(bookId, bookshelfId);
         bookshelf.addBook(book);
         book.incrementDownloadCount();
         return BookMapper.toResponse(book);
     }
 
+    @Transactional(readOnly = true)
     public List<BookshelfResponse> findByUserId(Integer userId){
+        if (!userRepository.existsById(userId)) throw new UserNotFoundException(userId);
         return bookshelfRepository.findByAuthorId(userId).stream().map(BookshelfResponse::new).toList();
     }
 

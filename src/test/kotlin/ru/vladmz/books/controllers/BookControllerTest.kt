@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.anySet
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argThat
@@ -102,7 +103,7 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
             BookMapper.toResponse(book),
             BookMapper.toResponse(book),
             BookMapper.toResponse(book)))
-        whenever(bookService.findAll(anyInt(), anyInt(), anyOrNull(), anyOrNull()))
+        whenever(bookService.findAll(any()))
             .thenReturn(books)
 
         mockMvc.get("/books") {
@@ -130,7 +131,7 @@ class BookControllerTest (@Autowired val mockMvc: MockMvc) {
 
         val expectedResponse = BookMapper.toResponse(book)
 
-        whenever(bookService.createBook(BookMapper.toBook(request), genres)).thenReturn(expectedResponse)
+        whenever(bookService.createBook(any(), anySet())).thenReturn(expectedResponse)
 
         mockMvc.post("/books") {
             contentType = MediaType.APPLICATION_JSON

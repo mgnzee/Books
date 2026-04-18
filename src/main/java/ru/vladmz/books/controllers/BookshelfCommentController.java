@@ -12,7 +12,7 @@ import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.comment.CommentPatchRequest;
 import ru.vladmz.books.DTOs.comment.CommentRequest;
 import ru.vladmz.books.DTOs.comment.CommentResponse;
-import ru.vladmz.books.etc.EntitySort;
+import ru.vladmz.books.etc.pageSorting.CommentSort;
 import ru.vladmz.books.mappers.CommentMapper;
 import ru.vladmz.books.services.CommentService;
 
@@ -31,7 +31,7 @@ public class BookshelfCommentController {
     public Page<CommentResponse> findByTargetId(@PathVariable Integer bookshelfId,
                                                 @RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "10") int size,
-                                                @RequestParam(defaultValue = "TIME") EntitySort sort,
+                                                @RequestParam(defaultValue = "TIME") CommentSort sort,
                                                 @RequestParam(defaultValue = "DESC") Sort.Direction direction){
         return service.getCommentsByTargetId(CommentTarget.ofBookshelf(bookshelfId), PageParams.of(page, size, sort, direction));
     }
@@ -46,7 +46,7 @@ public class BookshelfCommentController {
                                              @PathVariable Integer commentId,
                                              @RequestParam(defaultValue = "0") int page,
                                              @RequestParam(defaultValue = "10") int size){
-        return service.findReplies(CommentTarget.ofBookshelf(bookshelfId), commentId, PageParams.of(page, size, EntitySort.TIME, Sort.Direction.ASC));
+        return service.findReplies(CommentTarget.ofBookshelf(bookshelfId), commentId, PageParams.of(page, size, CommentSort.TIME, Sort.Direction.ASC));
     }
 
     @PostMapping
