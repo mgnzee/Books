@@ -18,16 +18,14 @@ public class BookshelfMapper {
      * **/
     public static Bookshelf toBookshelf(BookshelfRequest request){
         Bookshelf bookshelf = new Bookshelf();
-        bookshelf.setTitle(request.getTitle());
-        bookshelf.setDescription(request.getDescription());
-        bookshelf.setCover(request.getCover());
+        bookshelf.setTitle(request.title());
+        bookshelf.setDescription(request.description());
 
         return bookshelf;
     }
 
     public static void patchBookshelf(Bookshelf target, BookshelfPatchRequest request){
-        if (request.getTitle() != null) target.setTitle(request.getTitle());
-        if (request.getDescription() != null) target.setDescription(request.getDescription());
-        if (request.getCover() != null) target.setCover(request.getCover());
+        if (request.title() != null) target.setTitle(request.title());
+        if (request.description() != null) target.setDescription(request.description());
     }
 }
