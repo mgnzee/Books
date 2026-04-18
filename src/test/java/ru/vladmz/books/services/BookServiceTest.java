@@ -88,7 +88,7 @@ public class BookServiceTest {
 
         when(bookRepository.findAll(any(Pageable.class))).thenReturn(Page.empty());
 
-    bookService.findAll(PageParams.of(page, size, sort, direction));
+        bookService.findAll(PageParams.of(page, size, sort, direction));
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(bookRepository).findAll(pageableCaptor.capture());
