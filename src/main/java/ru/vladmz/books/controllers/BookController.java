@@ -13,7 +13,7 @@ import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.book.BookPatchRequest;
 import ru.vladmz.books.DTOs.book.BookCreateRequest;
 import ru.vladmz.books.DTOs.book.BookResponse;
-import ru.vladmz.books.etc.EntitySort;
+import ru.vladmz.books.etc.pageSorting.BookSort;
 import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.services.BookService;
 
@@ -46,7 +46,7 @@ public class BookController {
     @GetMapping
     public Page<BookResponse> findAll(@RequestParam(defaultValue = "0", required = false) Integer page,
                                       @RequestParam(defaultValue = "10", required = false) Integer size,
-                                      @RequestParam(defaultValue = "TIME") EntitySort sort,
+                                      @RequestParam(defaultValue = "TIME") BookSort sort,
                                       @RequestParam(defaultValue = "DESC") Sort.Direction direction)
     {
         return service.findAll(PageParams.of(page, size, sort, direction));

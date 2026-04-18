@@ -18,4 +18,7 @@ public interface BookRepository extends JpaRepository<Book, Integer> { //TODO: F
 
     @Query("select b from Book b join fetch b.genres g where g.id = :genreId")
     List<Book> findAllByGenreId(Integer genreId);
+
+    @EntityGraph(attributePaths = {"uploadedBy"})
+    Page<Book> findBooksByBookshelves_Id(Integer id, Pageable pageable);
 }

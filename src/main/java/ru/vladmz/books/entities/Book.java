@@ -3,6 +3,7 @@ package ru.vladmz.books.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.BatchSize;
 import ru.vladmz.books.entities.interfaces.Commentable;
 import ru.vladmz.books.entities.interfaces.Ownable;
 
@@ -55,6 +56,7 @@ public class Book extends BaseEntity implements Commentable, Ownable {
     private List<Bookshelf> bookshelves = new ArrayList<>();
 
     @ManyToMany
+    @BatchSize(size = 20)
     @JoinTable(
             name = "books_to_genres",
             joinColumns = @JoinColumn(name = "book_id"),

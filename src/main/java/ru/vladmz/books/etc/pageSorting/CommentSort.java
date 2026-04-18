@@ -1,15 +1,16 @@
-package ru.vladmz.books.etc;
+package ru.vladmz.books.etc.pageSorting;
 
-public enum EntitySort {
+public enum CommentSort implements EntitySort{
     TIME("createdAt"),
     UPVOTES("upvotes");
 
     private final String fieldName;
 
-    EntitySort(String fieldName) {
+    CommentSort(String fieldName) {
         this.fieldName = fieldName;
     }
 
+    @Override
     public String getFieldName() {
         return fieldName;
     }

@@ -1,8 +1,10 @@
 package ru.vladmz.books.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfPatchRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
@@ -38,8 +40,8 @@ public class BookshelfService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookshelfResponse> findAll(){
-        return bookshelfRepository.findAll().stream().map(BookshelfResponse::new).toList();
+    public Page<BookshelfResponse> findAll(PageParams page){
+        return bookshelfRepository.findAll(page.toPageable()).map(BookshelfResponse::new);
     }
 
     @Transactional(readOnly = true)
@@ -64,10 +66,8 @@ public class BookshelfService {
 
     //TODO: CHECK FOR N+1
     @Transactional(readOnly = true)
-    public List<BookResponse> findBooksByBookshelfId(Integer id) {
-        Bookshelf bookshelf = bookshelfRepository.findById(id)
-                .orElseThrow(() -> new BookshelfNotFoundException(id));
-        return bookshelf.getBooks().stream().map(BookMapper::toResponse).toList();
+    public Page<BookResponse> findBooksByBookshelfId(Integer bookshelfId, PageParams page) {
+        return bookRepository.findBooksByBookshelves_Id(bookshelfId, page.toPageable()).map(BookMapper::toResponse);
     }
 
     public BookResponse addBookToBookshelf(Integer bookshelfId, Integer bookId){
