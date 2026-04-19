@@ -44,9 +44,9 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
             "FROM Comment c " +
             "LEFT JOIN FETCH c.user " +
             "WHERE c.id = :commentId AND c.targetType = :targetType AND c.targetId = :targetId")
-    Optional<Comment> findByIdAndTarget(@Param("commentId") Integer commentId,
-                                        @Param("type") TargetType targetType,
-                                        @Param("id") Integer targetId);
+    Optional<Comment> findByIdAndTarget(Integer commentId,
+                                        TargetType targetType,
+                                        Integer targetId);
 
     @Modifying
     @Query("UPDATE Comment c SET c.repliesCount = c.repliesCount + 1 WHERE c.id = :commentId")
