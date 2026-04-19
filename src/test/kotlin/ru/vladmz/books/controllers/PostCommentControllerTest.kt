@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.post
 import ru.vladmz.books.DTOs.CommentTarget
 import ru.vladmz.books.DTOs.comment.CommentPatchRequest
 import ru.vladmz.books.DTOs.comment.CommentRequest
+import ru.vladmz.books.DTOs.comment.CommentResponse
 import ru.vladmz.books.entities.Comment
 import ru.vladmz.books.entities.User
 import ru.vladmz.books.etc.TargetType
@@ -146,8 +147,7 @@ class PostCommentControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @Test
     fun createComment(){
-        val response = CommentMapper.toResponse(comment)
-        response.text = "Text"
+        val response = CommentResponse.fromComment(comment).withText("Text")
         val request = CommentRequest("Text", 0)
 
         whenever(commentService.createComment(any(), any(), any())).thenReturn(response)
@@ -165,9 +165,7 @@ class PostCommentControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @Test
     fun createComment_shouldReturn400(){
-        val response = CommentMapper.toResponse(comment)
         val blankTitle = "   "
-        response.text = blankTitle
         val request = CommentRequest(blankTitle, 0)
 
         mockMvc.post("/posts/$postId/comments") {
@@ -182,10 +180,8 @@ class PostCommentControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @Test
     fun updateComment(){
-        val response = CommentMapper.toResponse(comment)
-        response.text = "Text"
-        val request = CommentPatchRequest()
-        request.text = "Text"
+        val response = CommentResponse.fromComment(comment).withText("Text")
+        val request = CommentPatchRequest("Text")
 
         whenever(commentService.updateComment(any(), any(), any())).thenReturn(response)
 
@@ -203,10 +199,7 @@ class PostCommentControllerTest(@Autowired val mockMvc: MockMvc) {
     @Test
     fun updateComment_shouldReturn404(){
         val wrongId = 100
-        val response = CommentMapper.toResponse(comment)
-        response.text = "Text"
-        val request = CommentPatchRequest()
-        request.text = "Text"
+        val request = CommentPatchRequest("Text")
 
         whenever(commentService.updateComment(any(), any(), any()))
             .thenThrow(CommentNotFoundException(wrongId))
@@ -226,11 +219,8 @@ class PostCommentControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @Test
     fun updateComment_shouldReturn400(){
-        val response = CommentMapper.toResponse(comment)
         val blankTitle = "   "
-        response.text = blankTitle
-        val request = CommentPatchRequest()
-        request.text = blankTitle
+        val request = CommentPatchRequest(blankTitle)
 
         mockMvc.patch("/posts/$postId/comments/$commentId") {
             contentType = MediaType.APPLICATION_JSON
@@ -244,10 +234,7 @@ class PostCommentControllerTest(@Autowired val mockMvc: MockMvc) {
 
     @Test
     fun updateComment_shouldReturn403(){
-        val response = CommentMapper.toResponse(comment)
-        response.text = "Text"
-        val request = CommentPatchRequest()
-        request.text = "Text"
+        val request = CommentPatchRequest("Text")
 
         whenever(commentService.updateComment(any(), any(), any()))
             .thenThrow(AccessDeniedException("Forbidden"))

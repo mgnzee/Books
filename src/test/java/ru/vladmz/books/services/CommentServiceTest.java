@@ -80,8 +80,8 @@ public class CommentServiceTest {
         CommentResponse response = commentService.findById(commentId, CommentTarget.ofBook(1));
 
         assertNotNull(response);
-        assertEquals(comment.getId(), response.getId());
-        assertEquals(comment.getText(), response.getText());
+        assertEquals(comment.getId(), response.id());
+        assertEquals(comment.getText(), response.text());
         verify(commentRepository, times(1)).findByIdAndTarget(commentId, TargetType.BOOK, 1);
     }
 
@@ -126,8 +126,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment(){
-        CommentPatchRequest request = new CommentPatchRequest();
-        request.setText("Updated text");
+        CommentPatchRequest request = new CommentPatchRequest("Updated text");
         when(bookStrategy.findById(1)).thenReturn(book);
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
         when(commentRepository.save(comment)).thenReturn(comment);
@@ -141,8 +140,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_shouldThrowCommentNotFound(){
-        CommentPatchRequest request = new CommentPatchRequest();
-        request.setText("Updated text");
+        CommentPatchRequest request = new CommentPatchRequest("Updated text");
         when(bookStrategy.findById(1)).thenReturn(book);
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.empty());
 
@@ -152,8 +150,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_shouldThrowTargetNotFound(){
-        CommentPatchRequest request = new CommentPatchRequest();
-        request.setText("Updated text");
+        CommentPatchRequest request = new CommentPatchRequest("Updated text");
         when(bookStrategy.findById(1)).thenReturn(null);
 
         assertThrows(ResourceNotFoundException.class, () -> commentService.updateComment(request, commentId, CommentTarget.ofBook(1)));
@@ -162,8 +159,7 @@ public class CommentServiceTest {
 
     @Test
     void updateComment_shouldThrowAccessDenied(){
-        CommentPatchRequest request = new CommentPatchRequest();
-        request.setText("Updated text");
+        CommentPatchRequest request = new CommentPatchRequest("Updated text");
         when(bookStrategy.findById(1)).thenReturn(book);
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
 
@@ -176,8 +172,7 @@ public class CommentServiceTest {
     @Test
     void updateComment_shouldThrowCommentAlreadyDeleted(){
         comment.delete();
-        CommentPatchRequest request = new CommentPatchRequest();
-        request.setText("Updated text");
+        CommentPatchRequest request = new CommentPatchRequest("Updated text");
         when(bookStrategy.findById(1)).thenReturn(book);
         when(commentRepository.findByIdAndTarget(commentId, TargetType.BOOK, 1)).thenReturn(Optional.ofNullable(comment));
 

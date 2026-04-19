@@ -11,6 +11,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -156,6 +157,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBookAlreadyInBookshelf(BookAlreadyInBookshelfException ex){
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(generateResponse(ex, HttpStatus.CONFLICT, "Can't add duplicate book in bookshelf"));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(generateResponse(ex, HttpStatus.BAD_REQUEST, "Invalid parameter " + ex.getName()));
     }
 
 
