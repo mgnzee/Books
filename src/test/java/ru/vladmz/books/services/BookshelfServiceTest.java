@@ -14,22 +14,27 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.book.BookResponse;
+import ru.vladmz.books.DTOs.bookshelf.BookshelfPatchRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfRequest;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.pageSorting.DefaultSort;
+import ru.vladmz.books.exceptions.BookAlreadyInBookshelfException;
 import ru.vladmz.books.exceptions.BookNotFoundException;
 import ru.vladmz.books.exceptions.BookshelfNotFoundException;
+import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.mappers.BookshelfMapper;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.BookshelfRepository;
+import ru.vladmz.books.repositories.UserRepository;
 import ru.vladmz.books.security.CurrentUserProvider;
 import ru.vladmz.books.security.PermissionChecker;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,6 +53,8 @@ public class BookshelfServiceTest {
     PermissionChecker permissionChecker;
     @Mock
     CurrentUserProvider provider;
+    @Mock
+    UserRepository userRepository;
 
     @InjectMocks
     BookshelfService bookshelfService;
@@ -168,6 +175,7 @@ public class BookshelfServiceTest {
 
     @Test
     void addBookToBookshelf(){
+        book.setDownloadCount(0);
         when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
 
@@ -175,35 +183,41 @@ public class BookshelfServiceTest {
 
         verify(permissionChecker).checkPermission(bookshelf);
         assertEquals(1, bookshelf.getBooks().size());
+        assertEquals(1, book.getDownloadCount());
         assertTrue(bookshelf.getBooks().contains(book));
         assertNotNull(result);
     }
 
     @Test
     void addBookToBookshelf_shouldThrowBookshelfNotFound(){
+        book.setDownloadCount(0);
         when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.empty());
 
         assertThrows(BookshelfNotFoundException.class, () -> bookshelfService.addBookToBookshelf(bookshelfId, bookId));
 
         assertTrue(bookshelf.getBooks().isEmpty());
+        assertEquals(0, book.getDownloadCount());
         verify(permissionChecker, never()).checkPermission(any());
-        verify(bookRepository, never()).findById(anyInt());
+        verify(bookRepository, never()).findById(any());
     }
 
     @Test
     void addBookToBookshelf_shouldThrowBookNotFound(){
+        book.setDownloadCount(0);
         when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
 
         assertThrows(BookNotFoundException.class, () -> bookshelfService.addBookToBookshelf(bookshelfId, bookId));
 
         assertTrue(bookshelf.getBooks().isEmpty());
+        assertEquals(0, book.getDownloadCount());
         verify(bookRepository).findById(bookId);
         verify(permissionChecker).checkPermission(bookshelf);
     }
 
     @Test
     void addBookToBookshelf_shouldThrowAccessDenied(){
+        book.setDownloadCount(0);
         when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
 
         doThrow(new AccessDeniedException("Forbidden")).when(permissionChecker).checkPermission(bookshelf);
@@ -211,88 +225,184 @@ public class BookshelfServiceTest {
         assertThrows(AccessDeniedException.class, () -> bookshelfService.addBookToBookshelf(bookshelfId, bookId));
 
         assertTrue(bookshelf.getBooks().isEmpty());
+        assertEquals(0, book.getDownloadCount());
         verify(bookshelfRepository).findById(bookshelfId);
         verify(permissionChecker).checkPermission(bookshelf);
         verify(bookRepository, never()).findById(bookId);
     }
 
     @Test
-    void findByUserId(){
+    void addBookToBookshelf_shouldThrowBookAlreadyInBookshelf(){
+        bookshelf.addBook(book);
+        book.setDownloadCount(1);
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
 
+        assertThrows(BookAlreadyInBookshelfException.class, () -> bookshelfService.addBookToBookshelf(bookshelfId, bookId));
+
+        verify(bookshelfRepository).findById(bookshelfId);
+        verify(permissionChecker).checkPermission(bookshelf);
+        verify(bookRepository).findById(bookId);
+
+        assertEquals(1, bookshelf.getBooks().size());
+        assertEquals(1, book.getDownloadCount());
+    }
+
+    @Test
+    void findByUserId(){
+        when(userRepository.existsById(userId)).thenReturn(true);
+        when(bookshelfRepository.findByAuthorId(eq(userId), any())).thenReturn(new PageImpl<>(List.of(bookshelf)));
+
+        Page<BookshelfResponse> response = bookshelfService.findByUserId(userId,
+                PageParams.of(0, 10, DefaultSort.TIME, Sort.Direction.DESC));
+
+        assertEquals(1, response.getContent().size());
+        assertEquals(bookshelf.getTitle(), response.getContent().getFirst().title());
+        verify(bookshelfRepository).findByAuthorId(eq(userId), argThat((Pageable p) ->
+                p.getPageNumber() == 0 &&
+                p.getPageSize() == 10 &&
+                p.getSort().getOrderFor("createdAt") != null &&
+                Objects.requireNonNull(p.getSort().getOrderFor("createdAt")).isDescending()
+        ));
     }
 
     @Test
     void findByUserId_shouldThrowUserNotFound(){
+        when(userRepository.existsById(userId)).thenReturn(false);
 
+        assertThrows(UserNotFoundException.class, () -> bookshelfService.findByUserId(userId, PageParams.firstPage()));
+
+        verify(userRepository).existsById(userId);
+        verify(bookshelfRepository, never()).findByAuthorId(any(), any());
     }
 
     @Test
     void deleteBookFromBookshelf(){
+        when(bookRepository.existsById(bookId)).thenReturn(true);
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
 
+        bookshelfService.deleteBookFromBookshelf(bookshelfId, bookId);
+
+        verify(bookRepository).existsById(bookId);
+        verify(bookshelfRepository).findById(bookshelfId);
+        verify(permissionChecker).checkPermission(bookshelf);
+        verify(bookshelfRepository).removeBookFromBookshelf(bookshelfId, bookId);
     }
 
     @Test
     void deleteBookFromBookshelf_shouldThrowBookNotFound(){
+        when(bookRepository.existsById(bookId)).thenReturn(false);
 
+        assertThrows(BookNotFoundException.class, () -> bookshelfService.deleteBookFromBookshelf(bookshelfId, bookId));
+
+        verify(bookRepository).existsById(bookId);
+        verifyNoInteractions(bookshelfRepository, permissionChecker);
     }
 
     @Test
     void deleteBookFromBookshelf_shouldThrowBookshelfNotFound(){
+        when(bookRepository.existsById(bookId)).thenReturn(true);
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.empty());
 
+        assertThrows(BookshelfNotFoundException.class, () -> bookshelfService.deleteBookFromBookshelf(bookshelfId, bookId));
+
+        verify(bookRepository).existsById(bookId);
+        verify(bookshelfRepository).findById(bookshelfId);
+        verifyNoInteractions(permissionChecker);
+        verify(bookshelfRepository, never()).removeBookFromBookshelf(bookshelfId, bookId);
     }
 
     @Test
     void deleteBookFromBookshelf_shouldThrowAccessDenied(){
+        when(bookRepository.existsById(bookId)).thenReturn(true);
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
 
-    }
+        doThrow(AccessDeniedException.class).when(permissionChecker).checkPermission(bookshelf);
 
-    @Test
-    void deleteBookFromBookshelf_shouldPassWhenUserIsAdmin(){
+        assertThrows(AccessDeniedException.class, () -> bookshelfService.deleteBookFromBookshelf(bookshelfId, bookId));
 
+        verify(bookRepository).existsById(bookId);
+        verify(bookshelfRepository).findById(bookshelfId);
+        verify(permissionChecker).checkPermission(bookshelf);
+        verify(bookshelfRepository, never()).removeBookFromBookshelf(bookshelfId, bookId);
     }
 
     @Test
     void updateBookshelf(){
+        String newTitle = "New bookshelf title";
+        String newDesc = "New desc";
+        BookshelfPatchRequest request = new BookshelfPatchRequest(newTitle, newDesc);
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
 
+        BookshelfResponse updated = bookshelfService.updateBookshelf(bookshelfId, request);
+
+        assertEquals(newTitle, updated.title());
+        verify(bookshelfRepository).findById(bookshelfId);
+        verify(permissionChecker).checkPermission(bookshelf);
     }
 
     @Test
     void updateBookshelf_shouldThrowBookshelfNotFound(){
+        String newTitle = "New bookshelf title";
+        String newDesc = "New desc";
+        BookshelfPatchRequest request = new BookshelfPatchRequest(newTitle, newDesc);
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.empty());
 
+        assertThrows(BookshelfNotFoundException.class, () -> bookshelfService.updateBookshelf(bookshelfId, request));
+
+        verify(bookshelfRepository).findById(bookshelfId);
+        verifyNoInteractions(permissionChecker);
+        verify(bookshelfRepository, never()).save(any());
     }
 
     @Test
     void updateBookshelf_shouldThrowAccessDenied(){
+        String newTitle = "New bookshelf title";
+        String newDesc = "New desc";
+        BookshelfPatchRequest request = new BookshelfPatchRequest(newTitle, newDesc);
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
 
-    }
+        doThrow(AccessDeniedException.class).when(permissionChecker).checkPermission(bookshelf);
 
-    @Test
-    void updateBookShelf_shouldThrowBookAlreadyInBookshelf(){
+        assertThrows(AccessDeniedException.class, () -> bookshelfService.updateBookshelf(bookshelfId, request));
 
-    }
-
-    @Test
-    void updateBookshelf_shouldPassWhenUserIsAdmin(){
-
+        verify(bookshelfRepository).findById(bookshelfId);
+        verify(permissionChecker).checkPermission(bookshelf);
+        verify(bookshelfRepository, never()).save(any());
     }
 
     @Test
     void deleteBookshelf(){
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
 
-    }
+        bookshelfService.deleteBookshelf(bookshelfId);
 
-    @Test
-    void deleteBookshelf_shouldPassWhenUserIsAdmin(){
-
+        verify(bookshelfRepository).findById(bookshelfId);
+        verify(permissionChecker).checkPermission(bookshelf);
+        verify(bookshelfRepository).delete(bookshelf);
     }
 
     @Test
     void deleteBookshelf_shouldThrowBookshelfNotFound(){
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.empty());
 
+        assertThrows(BookshelfNotFoundException.class, () -> bookshelfService.deleteBookshelf(bookshelfId));
+
+        verify(bookshelfRepository).findById(bookshelfId);
+        verifyNoInteractions(permissionChecker);
+        verify(bookshelfRepository, never()).delete(any());
     }
 
     @Test
     void deleteBookshelf_shouldThrowAccessDenied(){
+        when(bookshelfRepository.findById(bookshelfId)).thenReturn(Optional.of(bookshelf));
 
+        doThrow(AccessDeniedException.class).when(permissionChecker).checkPermission(bookshelf);
+
+        assertThrows(AccessDeniedException.class, () -> bookshelfService.deleteBookshelf(bookshelfId));
+
+        verify(bookshelfRepository).findById(bookshelfId);
+        verify(permissionChecker).checkPermission(bookshelf);
+        verify(bookshelfRepository, never()).delete(any());
     }
 }
