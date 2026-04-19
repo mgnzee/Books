@@ -16,7 +16,7 @@ import java.util.List;
 public interface BookshelfRepository extends JpaRepository<Bookshelf, Integer> {
 
     @EntityGraph(attributePaths = {"author"})
-    List<Bookshelf> findByAuthorId(Integer authorId);
+    Page<Bookshelf> findByAuthorId(Integer authorId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"author"})
     @NonNull

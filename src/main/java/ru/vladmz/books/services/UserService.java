@@ -2,10 +2,12 @@ package ru.vladmz.books.services;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vladmz.books.DTOs.FileUploadRequest;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
@@ -60,10 +62,10 @@ public class UserService implements DeletableChecker {
     }
 
     @Transactional(readOnly = true)
-    public List<BookshelfResponse> findBookshelvesOfUser(Integer userId){
+    public Page<BookshelfResponse> findBookshelvesOfUser(Integer userId, PageParams page){
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         checkDeleted(user);
-        return bookshelfService.findByUserId(userId);
+        return bookshelfService.findByUserId(userId, page);
     }
 
     public UserResponse createUser(@NonNull User user, String rawPassword){

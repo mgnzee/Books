@@ -90,9 +90,9 @@ public class BookshelfService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookshelfResponse> findByUserId(Integer userId){
+    public Page<BookshelfResponse> findByUserId(Integer userId, PageParams page){
         if (!userRepository.existsById(userId)) throw new UserNotFoundException(userId);
-        return bookshelfRepository.findByAuthorId(userId).stream().map(BookshelfResponse::new).toList();
+        return bookshelfRepository.findByAuthorId(userId, page.toPageable()).map(BookshelfResponse::new);
     }
 
     public void deleteBookFromBookshelf(Integer bookshelfId, Integer bookId){

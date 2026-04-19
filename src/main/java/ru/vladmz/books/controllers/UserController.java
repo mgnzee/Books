@@ -2,6 +2,8 @@ package ru.vladmz.books.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,12 +11,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.vladmz.books.DTOs.FileUploadRequest;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserCreateRequest;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
 import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.entities.User;
+import ru.vladmz.books.etc.pageSorting.BookSort;
+import ru.vladmz.books.etc.pageSorting.DefaultSort;
 import ru.vladmz.books.mappers.UserMapper;
 import ru.vladmz.books.services.FollowerService;
 import ru.vladmz.books.services.UserService;
@@ -72,8 +77,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/bookshelves")
-    public List<BookshelfResponse> selectBookshelves(@PathVariable Integer id){
-        return service.findBookshelvesOfUser(id);
+    public Page<BookshelfResponse> selectBookshelves(@PathVariable Integer id,
+                                                     @RequestParam(defaultValue = "0", required = false) Integer page,
+                                                     @RequestParam(defaultValue = "10", required = false) Integer size,
+                                                     @RequestParam(defaultValue = "TIME") DefaultSort sort,
+                                                     @RequestParam(defaultValue = "DESC") Sort.Direction direction){
+        return service.findBookshelvesOfUser(id, PageParams.of(page, size, sort, direction));
     }
 
     @PatchMapping("/{id}")

@@ -7,9 +7,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.vladmz.books.DTOs.FileUploadRequest;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.bookshelf.BookshelfResponse;
 import ru.vladmz.books.DTOs.user.UserChangeEmailRequest;
 import ru.vladmz.books.DTOs.user.UserPatchRequest;
@@ -17,6 +21,7 @@ import ru.vladmz.books.DTOs.user.UserResponse;
 import ru.vladmz.books.entities.Bookshelf;
 import ru.vladmz.books.entities.User;
 import ru.vladmz.books.etc.StorageDirectory;
+import ru.vladmz.books.etc.pageSorting.DefaultSort;
 import ru.vladmz.books.exceptions.ResourceAlreadyDeletedException;
 import ru.vladmz.books.exceptions.UserNotFoundException;
 import ru.vladmz.books.repositories.UserRepository;
@@ -123,13 +128,14 @@ class UserServiceTest {
     @Test
     void findBookshelvesOfUser(){
         BookshelfResponse bookshelf = generateBookshelf();
-        when(bookshelfService.findByUserId(user.getId())).thenReturn(List.of(bookshelf));
+        when(bookshelfService.findByUserId(eq(user.getId()), any())).thenReturn(new PageImpl<>(List.of(bookshelf)));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
-        List<BookshelfResponse> result = service.findBookshelvesOfUser(user.getId());
+        Page<BookshelfResponse> result = service.findBookshelvesOfUser(user.getId(),
+                PageParams.of(0, 10, DefaultSort.TIME, Sort.Direction.DESC));
 
-        assertEquals(1, result.size());
-        assertEquals(bookshelf.title(), result.getFirst().title());
+        assertEquals(1, result.getContent().size());
+        assertEquals(bookshelf.title(), result.getContent().getFirst().title());
     }
 
     @Test
@@ -137,8 +143,9 @@ class UserServiceTest {
         int wrongId = 10;
         when(userRepository.findById(wrongId)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> service.findBookshelvesOfUser(wrongId));
-        verify(bookshelfService, never()).findByUserId(any());
+        assertThrows(UserNotFoundException.class, () -> service.findBookshelvesOfUser(wrongId,
+                PageParams.of(0, 10, DefaultSort.TIME, Sort.Direction.DESC)));
+        verify(bookshelfService, never()).findByUserId(any(), any());
     }
 
     @Test
@@ -146,9 +153,10 @@ class UserServiceTest {
         user.setDeleted(true);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
 
-        assertThrows(ResourceAlreadyDeletedException.class, () -> service.findBookshelvesOfUser(user.getId()));
+        assertThrows(ResourceAlreadyDeletedException.class, () -> service.findBookshelvesOfUser(user.getId(),
+                PageParams.of(0, 10, DefaultSort.TIME, Sort.Direction.DESC)));
 
-        verify(bookshelfService, never()).findByUserId(any());
+        verify(bookshelfService, never()).findByUserId(any(), any());
     }
 
     private BookshelfResponse generateBookshelf(){
