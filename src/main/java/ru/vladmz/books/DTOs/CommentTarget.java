@@ -2,6 +2,9 @@ package ru.vladmz.books.DTOs;
 
 import ru.vladmz.books.etc.TargetType;
 
+/**
+ * Wrapper for Comment.targetId and Comment.targetType
+ * **/
 public record CommentTarget(
     int id,
     TargetType type

@@ -1,17 +1,8 @@
 package ru.vladmz.books.DTOs.comment;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-public class CommentPatchRequest {
-
-    @NotBlank
-    private String text;
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-}
+public record CommentPatchRequest(
+        @NotBlank @Size(min = 1, max = 500) String text
+) {}

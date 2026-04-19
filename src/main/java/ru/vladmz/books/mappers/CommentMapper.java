@@ -10,10 +10,10 @@ public class CommentMapper {
     private CommentMapper(){}
 
     public static CommentResponse toResponse(Comment comment){
-        return new CommentResponse(comment);
+        return CommentResponse.fromComment(comment);
     }
 
-    /**Map CommentRequest to Comment
+    /**
      * NOTE: After mapping, userId should be added from securityContext
      * **/
     public static Comment patchComment(CommentRequest request){
@@ -25,7 +25,7 @@ public class CommentMapper {
 
 
     public static Comment patchComment(Comment target, CommentPatchRequest request){
-        if(request.getText()!=null) target.setText(request.getText());
+        if(request.text()!=null) target.setText(request.text());
         return target;
     }
 }

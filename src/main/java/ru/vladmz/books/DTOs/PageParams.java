@@ -13,11 +13,13 @@ public record PageParams(
         Sort.Direction sortDirection
 ) {
 
-    private static final PageParams firstPage = new PageParams(0, 50, DefaultSort.TIME, Sort.Direction.DESC);
+    private static final int MAX_PAGE_SIZE = 50;
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final PageParams firstPage = new PageParams(0, DEFAULT_PAGE_SIZE, DefaultSort.TIME, Sort.Direction.DESC);
 
     public PageParams{
         if (pageNumber < 0) pageNumber = 0;
-        if (pageSize <= 0 || pageSize > 50) pageSize = 20;
+        if (pageSize <= 0 || pageSize > MAX_PAGE_SIZE) pageSize = DEFAULT_PAGE_SIZE;
     }
 
     public Pageable toPageable(){
@@ -38,7 +40,7 @@ public record PageParams(
 
     public static class Builder{
         private int pageNumber = 0;
-        private int pageSize = 20;
+        private int pageSize = DEFAULT_PAGE_SIZE;
         private EntitySort sortBy = DefaultSort.TIME;
         private Sort.Direction sortDirection = Sort.Direction.DESC;
 
