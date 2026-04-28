@@ -13,6 +13,11 @@ public class PostRequest {
 
     public PostRequest(){}
 
+    public PostRequest(String title, String text) {
+        this.title = title;
+        this.text = text;
+    }
+
     public String getTitle() {
         return title;
     }
