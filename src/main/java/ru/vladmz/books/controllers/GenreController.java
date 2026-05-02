@@ -1,11 +1,12 @@
 package ru.vladmz.books.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.*;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.DTOs.genre.GenreResponse;
+import ru.vladmz.books.etc.pageSorting.BookSort;
 import ru.vladmz.books.mappers.BookMapper;
 import ru.vladmz.books.services.GenreService;
 
@@ -31,9 +32,12 @@ public class GenreController {
         return new GenreResponse(genreService.findById(genreId));
     }
 
-    //TODO: ADD PAGINATION
     @GetMapping("/{genreId}/books")
-    public List<BookResponse> findBooksByGenreId(@PathVariable Integer genreId){
-        return genreService.findBooksByGenre(genreId).stream().map(BookMapper::toResponse).toList();
+    public Page<BookResponse> findBooksByGenreId(@PathVariable Integer genreId,
+                                                 @RequestParam(defaultValue = "0", required = false) Integer page,
+                                                 @RequestParam(defaultValue = "10", required = false) Integer size,
+                                                 @RequestParam(defaultValue = "TIME") BookSort sort,
+                                                 @RequestParam(defaultValue = "DESC") Sort.Direction direction){
+        return genreService.findBooksByGenre(genreId, PageParams.of(page, size, sort, direction)).map(BookMapper::toResponse);
     }
 }

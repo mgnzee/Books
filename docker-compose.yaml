@@ -75,5 +75,17 @@ services:
     ports:
       - "8080:8080"
 
+  tests:
+    image: maven:3.9-eclipse-temurin-25
+    volumes:
+      - .:/app
+    working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/books
+    command: mvn test
+
 volumes:
   postgres_data:
