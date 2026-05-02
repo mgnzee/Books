@@ -1,7 +1,9 @@
 package ru.vladmz.books.services;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.vladmz.books.DTOs.PageParams;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Genre;
 import ru.vladmz.books.exceptions.GenreNotFoundException;
@@ -33,8 +35,8 @@ public class GenreService {
     }
 
     @Transactional(readOnly = true)
-    public List<Book> findBooksByGenre(Integer genreId){
+    public Page<Book> findBooksByGenre(Integer genreId, PageParams pageParams){
         if (!genreRepository.existsById(genreId)) throw new GenreNotFoundException(genreId);
-        return bookRepository.findAllByGenreId(genreId);
+        return bookRepository.findAllByGenreId(genreId, pageParams.toPageable());
     }
 }

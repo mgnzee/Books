@@ -6,8 +6,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
+import ru.vladmz.books.DTOs.PageParams;
+import ru.vladmz.books.DTOs.book.BookResponse;
 import ru.vladmz.books.entities.Book;
 import ru.vladmz.books.entities.Genre;
+import ru.vladmz.books.etc.pageSorting.BookSort;
 import ru.vladmz.books.exceptions.GenreNotFoundException;
 import ru.vladmz.books.repositories.BookRepository;
 import ru.vladmz.books.repositories.GenreRepository;
@@ -81,21 +87,22 @@ public class GenreServiceTest {
         book.setId(100);
         book.setTitle("La Divina Commedia");
         book.getGenres().add(genre);
-        when(bookRepository.findAllByGenreId(1)).thenReturn(List.of(book));
+        PageParams page = PageParams.of(0, 10, BookSort.TIME, Sort.Direction.ASC);
+        when(bookRepository.findAllByGenreId(1, page.toPageable())).thenReturn(new PageImpl<Book>(List.of(book)));
         when(genreRepository.existsById(1)).thenReturn(true);
 
-        List<Book> result = genreService.findBooksByGenre(1);
+        Page<Book> result = genreService.findBooksByGenre(1, page);
 
-        assertEquals(1, result.size());
-        assertEquals(book, result.get(0));
-        verify(bookRepository, times(1)).findAllByGenreId(1);
+        assertEquals(1, result.getContent().size());
+        assertEquals(book, result.getContent().getFirst());
+        verify(bookRepository, times(1)).findAllByGenreId(1, page.toPageable());
     }
 
     @Test
     void findBooksByGenre_shouldThrowGenreNotFoundException(){
         when(genreRepository.existsById(15)).thenReturn(false);
 
-        assertThrows(GenreNotFoundException.class, () -> genreService.findBooksByGenre(15));
-        verify(bookRepository, never()).findAllByGenreId(any());
+        assertThrows(GenreNotFoundException.class, () -> genreService.findBooksByGenre(15, PageParams.firstPage()));
+        verify(bookRepository, never()).findAllByGenreId(any(), any());
     }
 }
